@@ -1,9 +1,3 @@
--- =========================================================
--- Sistema de Gestão de Frota - Schema consolidado Supabase
--- Execute este arquivo uma única vez no SQL Editor do Supabase.
--- Ele substitui os antigos arquivos de alteração/correção SQL.
--- =========================================================
-
 -- -------------------------
 -- Tabela: multas
 -- -------------------------
