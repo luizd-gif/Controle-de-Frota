@@ -3180,5 +3180,257 @@ html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!impo
 })();
 </script>
 
+
+
+<!-- PATCH LUIZ: sincronização segura Vercel/Supabase sem zerar se o banco vier vazio -->
+<script id="patch-luiz-sync-vercel-sem-zerar">
+(function(){
+  'use strict';
+
+  const MODULOS = ['tacografos','oleo','manutencoes','producao','pontos','motoristas','veiculos'];
+  const TABELAS = {
+    tacografos: ['tacografos','tacografo'],
+    oleo: ['oleo','troca_oleo','trocas_oleo','troca_de_oleo'],
+    manutencoes: ['manutencoes','manutencao'],
+    producao: ['producao','producao_dia','producao_do_dia'],
+    pontos: ['pontos'],
+    motoristas: ['motoristas'],
+    veiculos: ['veiculos']
+  };
+
+  const tabelaCache = {};
+  const primeiraCargaOk = {};
+  const ultimoSnapshot = {};
+  let sincronizando = false;
+
+  function banco(){
+    try { return typeof connectSupabase === 'function' ? connectSupabase() : null; }
+    catch(e){ return null; }
+  }
+  function paginaAtual(){
+    try { return currentPage || 'dashboard'; } catch(e){ return 'dashboard'; }
+  }
+  function mostrarPagina(){
+    try { if(typeof renderNav === 'function') renderNav(); } catch(e){}
+    try { if(typeof showPage === 'function') showPage(paginaAtual()); } catch(e){}
+  }
+  function aviso(txt){
+    try { if(typeof toast === 'function') toast(txt); } catch(e){}
+  }
+  function mes(v){
+    try { return typeof ym === 'function' ? ym(v) : (/^\d{4}-\d{2}-\d{2}$/.test(String(v||'')) ? String(v).slice(0,7) : ''); }
+    catch(e){ return ''; }
+  }
+  function num(v){
+    const n = Number(String(v ?? '').replace(',','.'));
+    return Number.isFinite(n) ? n : 0;
+  }
+  function up(v){ return String(v ?? '').trim().toUpperCase(); }
+  function limpar(v){ return String(v ?? '').trim(); }
+
+  async function descobrirTabela(modulo){
+    if(tabelaCache[modulo]) return tabelaCache[modulo];
+    const db = banco();
+    if(!db) return null;
+    for(const tabela of (TABELAS[modulo] || [modulo])){
+      try{
+        const r = await db.from(tabela).select('*').limit(1);
+        if(!r.error){
+          tabelaCache[modulo] = tabela;
+          return tabela;
+        }
+      }catch(e){}
+    }
+    return null;
+  }
+
+  function normalizar(modulo, row){
+    const o = Object.assign({}, row || {});
+    if(o.id !== undefined) o.id = Number(o.id);
+
+    if(modulo === 'tacografos'){
+      o.placa = up(o.placa || o.veiculo || o.carro || '');
+      o.data = limpar(o.data || o.emissao || o.data_emissao || o.data_afericao || '');
+      o.validade = limpar(o.validade || o.vencimento || o.data_validade || o.validade_tacografo || '');
+      o.status = limpar(o.status || o.situacao || 'ativo');
+      o.obs = limpar(o.obs || o.observacao || o.observacoes || '');
+    }
+
+    if(modulo === 'oleo'){
+      o.placa = up(o.placa || o.veiculo || o.carro || '');
+      o.data = limpar(o.data || '');
+      o.km = num(o.km);
+      o.proxKm = num(o.proxKm ?? o.proxkm ?? o.prox_km ?? o.proximo_km);
+      o.obs = limpar(o.obs || o.observacao || '');
+    }
+
+    if(modulo === 'manutencoes'){
+      o.placa = up(o.placa || o.veiculo || o.carro || '');
+      o.data = limpar(o.data || '');
+      o.tipo = limpar(o.tipo || o.servico || o.peca || '');
+      o.servico = limpar(o.servico || o.tipo || o.descricao || o.obs || '');
+      o.origem = limpar(o.origem || '');
+      o.descricao = limpar(o.descricao || o.obs || o.observacao || o.servico || o.tipo || '');
+      o.valor = num(o.valor);
+      o.status = limpar(o.status || 'concluido');
+    }
+
+    if(modulo === 'producao'){
+      o.placa = up(o.placa || o.veiculo || o.carro || '');
+      o.data = limpar(o.data || '');
+      o.mes = limpar(o.mes || mes(o.data));
+      o.servico = limpar(o.servico || o.descricao || '');
+      o.responsavel = limpar(o.responsavel || '');
+      o.obs = limpar(o.obs || o.observacao || '');
+    }
+
+    if(modulo === 'pontos'){
+      o.placa = up(o.placa || '');
+      o.pontos = num(o.pontos);
+      o.motorista = limpar(o.motorista || '');
+      o.data = limpar(o.data || '');
+      o.auto = limpar(o.auto || '');
+      o.gravidade = limpar(o.gravidade || '');
+      o.aceitou = limpar(o.aceitou || 'Pendente');
+    }
+
+    if(modulo === 'motoristas'){
+      o.pontos = num(o.pontos);
+      o.cnhArquivo = o.cnhArquivo || o.cnharquivo || '';
+    }
+
+    if(modulo === 'veiculos'){
+      o.placa = up(o.placa || '');
+      o.status = limpar(o.status || 'ativo');
+    }
+
+    delete o.created_at;
+    delete o.updated_at;
+    return o;
+  }
+
+  function mesDoRegistro(modulo, r){
+    if(modulo === 'tacografos') return mes(r.validade || r.vencimento || r.data_validade || r.data);
+    if(modulo === 'producao') return r.mes || mes(r.data);
+    return mes(r.data);
+  }
+
+  function reconstruirPastas(modulo){
+    try{
+      if(modulo === 'producao'){
+        const meses = Array.from(new Set((data.producao || []).map(r => r.mes || mes(r.data)).filter(Boolean))).sort();
+        const atuais = new Set((data.producaoMeses || []).map(x => typeof x === 'string' ? x : x.mes).filter(Boolean));
+        meses.forEach(m => atuais.add(m));
+        data.producaoMeses = Array.from(atuais).sort().map(m => ({mes:m}));
+      }
+      if(modulo === 'manutencoes'){
+        const meses = Array.from(new Set((data.manutencoes || []).map(r => mes(r.data)).filter(Boolean))).sort();
+        const atuais = new Set((data.manutencoesMeses || []).map(x => typeof x === 'string' ? x : x.mes).filter(Boolean));
+        meses.forEach(m => atuais.add(m));
+        data.manutencoesMeses = Array.from(atuais).sort().map(m => ({mes:m}));
+      }
+    }catch(e){}
+  }
+
+  function aplicarLista(modulo, rows, permitirZerar){
+    if(!window.data && typeof data !== 'undefined') window.data = data;
+    if(!data[modulo]) data[modulo] = [];
+
+    const listaRemota = (rows || []).map(r => normalizar(modulo, r));
+
+    // Regra anti-desastre: primeira carga vazia nunca apaga tela/dados embutidos.
+    if(listaRemota.length === 0 && !permitirZerar && !primeiraCargaOk[modulo]) return false;
+
+    const antes = JSON.stringify((data[modulo] || []).map(x => x.id).sort());
+
+    if(listaRemota.length > 0 || permitirZerar || primeiraCargaOk[modulo]){
+      data[modulo] = listaRemota;
+      primeiraCargaOk[modulo] = true;
+    }
+
+    reconstruirPastas(modulo);
+    const depois = JSON.stringify((data[modulo] || []).map(x => x.id).sort());
+    return antes !== depois || listaRemota.length > 0;
+  }
+
+  async function carregarModulo(modulo, origem){
+    const db = banco();
+    const tabela = await descobrirTabela(modulo);
+    if(!db || !tabela) return false;
+    try{
+      const r = await db.from(tabela).select('*');
+      if(r.error) throw r.error;
+      const assinatura = JSON.stringify((r.data || []).map(x => [x.id, x.updated_at || '', x.data || '', x.validade || '', x.mes || '']));
+      if(ultimoSnapshot[modulo] === assinatura && origem !== 'forcado') return false;
+      ultimoSnapshot[modulo] = assinatura;
+      return aplicarLista(modulo, r.data || [], origem === 'realtime-delete');
+    }catch(e){
+      console.warn('Sync '+modulo+' falhou:', e);
+      return false;
+    }
+  }
+
+  async function sincronizarTudo(origem){
+    if(sincronizando) return;
+    sincronizando = true;
+    let mudou = false;
+    try{
+      for(const modulo of MODULOS){
+        const ok = await carregarModulo(modulo, origem || 'poll');
+        if(ok) mudou = true;
+      }
+    }finally{
+      sincronizando = false;
+    }
+    if(mudou) mostrarPagina();
+  }
+
+  async function ativarRealtime(){
+    const db = banco();
+    if(!db || typeof db.channel !== 'function') return;
+    for(const modulo of MODULOS){
+      const tabela = await descobrirTabela(modulo);
+      if(!tabela) continue;
+      try{
+        db.channel('luiz-sync-' + tabela)
+          .on('postgres_changes', {event:'*', schema:'public', table:tabela}, async function(payload){
+            if(payload.eventType === 'DELETE') await carregarModulo(modulo, 'realtime-delete');
+            else await carregarModulo(modulo, 'realtime');
+            mostrarPagina();
+          })
+          .subscribe();
+      }catch(e){ console.warn('Realtime não ativou em '+tabela, e); }
+    }
+  }
+
+  const antigoSync = window.syncTodasAbasSupabase;
+  window.syncTodasAbasSupabase = async function(){
+    try { if(typeof antigoSync === 'function') await antigoSync.apply(this, arguments); } catch(e){ console.warn(e); }
+    await sincronizarTudo('forcado');
+  };
+
+  // Atualiza ao abrir, ao voltar para a aba e de tempos em tempos.
+  setTimeout(function(){ sincronizarTudo('inicial'); ativarRealtime(); }, 1200);
+  window.addEventListener('focus', function(){ sincronizarTudo('focus'); });
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) sincronizarTudo('focus'); });
+  setInterval(function(){ sincronizarTudo('poll'); }, 6000);
+
+  // Botão manual útil no Vercel/celular.
+  const oldSetActions = window.setActions || (typeof setActions === 'function' ? setActions : null);
+  if(oldSetActions){
+    window.setActions = function(html){
+      const atual = paginaAtual();
+      if(MODULOS.includes(atual) && !String(html || '').includes('syncTodasAbasSupabase')){
+        html = String(html || '') + '<button class="btn" onclick="syncTodasAbasSupabase()">↻ Atualizar</button>';
+      }
+      return oldSetActions.call(this, html);
+    };
+    try { setActions = window.setActions; } catch(e){}
+  }
+
+  console.log('Patch Luiz ativo: sincronização Supabase segura sem zerar dados.');
+})();
+</script>
+
 </body>
 </html>
