@@ -2917,5 +2917,268 @@ html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!impo
 })();
 </script>
 
+
+
+<!-- Correção definitiva: Tacógrafo adiciona/remove e aparece na tela imediatamente -->
+<script id="fix-definitivo-tacografo-aparece-e-sincroniza">
+(function(){
+  'use strict';
+  function db(){ try{return typeof connectSupabase==='function'?connectSupabase():null;}catch(e){return null;} }
+  function upper(v){ return String(v??'').trim().toUpperCase(); }
+  function str(v){ return String(v??'').trim(); }
+  function dt(v){ v=str(v); return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:''; }
+  function makeId(){ try{return typeof id==='function'?id():Date.now()+Math.floor(Math.random()*999);}catch(e){return Date.now()+Math.floor(Math.random()*999);} }
+  function month(v){ try{return typeof ym==='function'?ym(v):(/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v).slice(0,7):'');}catch(e){return '';} }
+  function fmt(v){ try{return typeof fmtDate==='function'?fmtDate(v):(v||'-');}catch(e){return v||'-';} }
+  function escapeHtml(v){ try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]});}catch(e){return String(v??'');} }
+  function cleanText(v){ try{return typeof clean==='function'?clean(v):String(v||'').toLowerCase();}catch(e){return String(v||'').toLowerCase();} }
+  function statusHtml(v){ try{return typeof statusTag==='function'?statusTag(v):'<span class="tag gray">'+escapeHtml(v||'-')+'</span>';}catch(e){return '<span class="tag gray">'+escapeHtml(v||'-')+'</span>'; } }
+  function tableHtml(title,heads,body){ try{return typeof table==='function'?table(title,heads,body):('<div class="table-card"><div class="table-head"><h3>'+title+'</h3><small>Controle</small></div><div class="table-scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+(body||'<tr><td colspan="99">Nenhum registro.</td></tr>')+'</tbody></table></div></div>');}catch(e){return '';}}
+  function statsHtml(items){ try{return typeof stats==='function'?stats(items):'';}catch(e){return '';} }
+  function folderHtml(key,months){ try{return typeof folderHtmlEmpresa==='function'?folderHtmlEmpresa(key,months):'';}catch(e){return '';}}
+  function filterBox(){ try{return typeof filterHtml==='function'?filterHtml('tacSearch','Buscar placa, emissão, validade, situação ou observação...'):'<div class="filters"><div class="filter-row two"><input id="tacSearch" placeholder="Buscar placa, emissão, validade, situação ou observação..."></div></div>';}catch(e){return '<div class="filters"><input id="tacSearch" placeholder="Buscar placa..."></div>';}}
+  function ensure(){ if(!window.data && typeof data!=='undefined') window.data=data; if(!data.tacografos) data.tacografos=[]; return data.tacografos; }
+  function normalize(row){ row=row||{}; return {
+    id:Number(row.id||makeId()),
+    placa:upper(row.placa||row.veiculo||row.carro||''),
+    data:dt(row.data||row.emissao||row.data_emissao||row.data_afericao||row.aferido_em||row.created_at||''),
+    validade:dt(row.validade||row.vencimento||row.data_validade||row.validade_tacografo||''),
+    status:str(row.status||row.situacao||row.resultado||'ativo'),
+    obs:str(row.obs||row.observacao||row.observacoes||'')
+  }; }
+  function selectedMonth(){ return (typeof folderSel!=='undefined' && folderSel && folderSel.tacografos) ? folderSel.tacografos : (typeof selectedTacMonth!=='undefined' ? selectedTacMonth : ''); }
+  function setSelectedMonth(m){ if(typeof folderSel!=='undefined' && folderSel) folderSel.tacografos=m||''; try{ selectedTacMonth=m||''; }catch(e){} }
+  function months(){ const set=new Set(); ensure().forEach(r=>{ const m=month(r.validade||r.data); if(m) set.add(m); }); return Array.from(set).sort(); }
+  function upsertLocal(obj){ const list=ensure(); obj=normalize(obj); const i=list.findIndex(x=>String(x.id)===String(obj.id)); if(i>=0) list[i]={...list[i],...obj}; else list.push(obj); return obj; }
+  function removeLocal(itemId){ data.tacografos=ensure().filter(x=>String(x.id)!==String(itemId)); }
+  async function tableName(){ const c=db(); if(!c) return null; for(const t of ['tacografos','tacografo']){ try{ const r=await c.from(t).select('*').limit(1); if(!r.error) return t; }catch(e){} } return null; }
+  function missingCol(err){ const txt=String(err?.message||err?.details||err||''); const m=txt.match(/Could not find the '([^']+)' column|column "([^"]+)" does not exist/i); return m?(m[1]||m[2]):''; }
+  async function saveSupabase(obj){
+    const c=db(), t=await tableName(); if(!c||!t) return null;
+    obj=normalize(obj);
+    const base={id:Number(obj.id),placa:obj.placa,data:obj.data||null,validade:obj.validade||null,status:obj.status||'ativo',obs:obj.obs||''};
+    const tries=[base,{...base,observacao:base.obs},{id:base.id,placa:base.placa,data:base.data,validade:base.validade,status:base.status},{id:base.id,placa:base.placa,validade:base.validade,status:base.status},{id:base.id,placa:base.placa,data:base.data,validade:base.validade}];
+    let last=null;
+    for(const original of tries){
+      let p={...original};
+      for(let i=0;i<10;i++){
+        try{
+          const r=await c.from(t).upsert(p,{onConflict:'id'}).select().single();
+          if(!r.error) return normalize(r.data||p);
+          throw r.error;
+        }catch(e){ last=e; const col=missingCol(e); if(col && Object.prototype.hasOwnProperty.call(p,col)){ delete p[col]; continue; } break; }
+      }
+    }
+    throw last||new Error('Não foi possível salvar tacógrafo.');
+  }
+  async function loadSupabase(){
+    const c=db(), t=await tableName(); if(!c||!t) return false;
+    try{
+      const r=await c.from(t).select('*'); if(r.error) throw r.error;
+      (r.data||[]).map(normalize).filter(x=>x.placa||x.data||x.validade).forEach(upsertLocal);
+      data.tacografos=ensure().sort((a,b)=>String(a.validade||a.data||'').localeCompare(String(b.validade||b.data||''))||String(a.placa||'').localeCompare(String(b.placa||'')));
+      return true;
+    }catch(e){ console.warn('Falha ao carregar tacógrafos do Supabase:',e); return false; }
+  }
+  async function deleteSupabase(itemId){ const c=db(), t=await tableName(); if(!c||!t) return false; const r=await c.from(t).delete().eq('id',Number(itemId)); if(r.error) throw r.error; return true; }
+
+  window.renderTacListEmpresa=window.renderTacListFinal=function(){
+    const target=document.getElementById('tacInfo'); if(!target) return;
+    const q=cleanText(document.getElementById('tacSearch')?.value||''); const sel=selectedMonth();
+    const rows=ensure().filter(r=>(!sel||month(r.validade||r.data)===sel)&&(!q||cleanText(Object.values(r).join(' ')).includes(q)));
+    target.innerHTML=tableHtml(sel?`Tacógrafos — ${typeof monthName==='function'?monthName(sel):sel}`:'Tacógrafos — Todos os meses',['Placa','Emissão','Validade','Situação','Obs','Ações'], rows.map(r=>`<tr><td><span class="plate">${escapeHtml(r.placa)}</span></td><td>${fmt(r.data)}</td><td>${fmt(r.validade)}</td><td>${statusHtml(r.status)}</td><td>${escapeHtml(r.obs||'-')}</td><td class="row-actions"><button class="icon-btn" onclick="openForm('tacografos',${r.id})">✎</button><button class="icon-btn" onclick="removeItem('tacografos',${r.id})">×</button></td></tr>`).join(''));
+  };
+  window.render_tacografos=function(){
+    if(typeof setActions==='function') setActions('<button class="btn primary" onclick="openForm(\'tacografos\')">+ Novo tacógrafo</button>');
+    const ms=months(); const sel=selectedMonth();
+    const el=document.getElementById('tacografos'); if(!el) return;
+    el.innerHTML=statsHtml([['Registros',ensure().length,'tacógrafos'],['Ativos',ensure().filter(x=>cleanText(x.status).includes('ativo')||cleanText(x.status).includes('ok')).length,'válidos'],['Pastas',ms.length,'por validade'],['Selecionado',sel?(typeof monthName==='function'?monthName(sel):sel):'Todos','pasta atual']])+folderHtml('tacografos',ms)+filterBox()+`<div id="tacInfo"></div>`;
+    const inp=document.getElementById('tacSearch'); if(inp) inp.oninput=window.renderTacListEmpresa; window.renderTacListEmpresa();
+  };
+  try{ render_tacografos=window.render_tacografos; }catch(e){}
+
+  const oldOpen=window.openForm || (typeof openForm==='function'?openForm:null);
+  window.openForm=function(key,itemId=null){
+    if(key!=='tacografos') return oldOpen?oldOpen.apply(this,arguments):undefined;
+    const item=itemId?ensure().find(x=>String(x.id)===String(itemId)):null;
+    const r=normalize(item||{id:makeId(),status:'ativo'});
+    modalCtx={key:'tacografos',itemId:itemId||null,tempId:r.id};
+    document.getElementById('modalTitle').textContent=(itemId?'Editar ':'Adicionar ')+'tacógrafo';
+    document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+      <div class="field"><label>Placa</label><input id="f_placa" type="text" value="${escapeHtml(r.placa)}"></div>
+      <div class="field"><label>Data da emissão/aferição</label><input id="f_data" type="date" value="${escapeHtml(r.data)}"></div>
+      <div class="field"><label>Validade</label><input id="f_validade" type="date" value="${escapeHtml(r.validade)}"></div>
+      <div class="field"><label>Status</label><select id="f_status"><option value="ativo" ${r.status==='ativo'?'selected':''}>Ativo</option><option value="ok" ${r.status==='ok'?'selected':''}>OK</option><option value="pendente" ${r.status==='pendente'?'selected':''}>Pendente</option><option value="vencido" ${r.status==='vencido'?'selected':''}>Vencido</option><option value="inativo" ${r.status==='inativo'?'selected':''}>Inativo</option></select></div>
+      <div class="field full"><label>Observação</label><input id="f_obs" type="text" value="${escapeHtml(r.obs)}"></div>
+    </div>`;
+    document.getElementById('modalBg').classList.add('open');
+  };
+  try{ openForm=window.openForm; }catch(e){}
+
+  const oldSave=window.saveModal || (typeof saveModal==='function'?saveModal:null);
+  window.saveModal=async function(){
+    const ctx=(typeof modalCtx!=='undefined' && modalCtx)?{...modalCtx}:null;
+    if(!ctx || ctx.key!=='tacografos') return oldSave?oldSave.apply(this,arguments):undefined;
+    const obj={
+      id:Number(ctx.itemId || ctx.tempId || makeId()),
+      placa:upper(document.getElementById('f_placa')?.value||''),
+      data:dt(document.getElementById('f_data')?.value||''),
+      validade:dt(document.getElementById('f_validade')?.value||''),
+      status:str(document.getElementById('f_status')?.value||'ativo'),
+      obs:str(document.getElementById('f_obs')?.value||'')
+    };
+    if(!obj.placa){ alert('Informe a placa.'); return; }
+    upsertLocal(obj);
+    const m=month(obj.validade||obj.data); setSelectedMonth(m||'');
+    if(typeof closeModal==='function') closeModal();
+    window.render_tacografos();
+    try{
+      const saved=await saveSupabase(obj); if(saved){ upsertLocal(saved); const sm=month(saved.validade||saved.data)||m; setSelectedMonth(sm||''); }
+      await loadSupabase();
+      window.render_tacografos();
+      if(typeof toast==='function') toast('Tacógrafo salvo e exibido na tela.');
+    }catch(e){ console.error(e); window.render_tacografos(); alert('Apareceu na tela, mas não salvou no Supabase. Detalhe: '+(e.message||e)); }
+  };
+  try{ saveModal=window.saveModal; }catch(e){}
+
+  const oldRemove=window.removeItem || (typeof removeItem==='function'?removeItem:null);
+  window.removeItem=async function(key,itemId){
+    if(key!=='tacografos') return oldRemove?oldRemove.apply(this,arguments):undefined;
+    if(!confirm('Excluir este tacógrafo?')) return;
+    removeLocal(itemId); window.render_tacografos();
+    try{ await deleteSupabase(itemId); if(typeof toast==='function') toast('Tacógrafo excluído.'); }
+    catch(e){ console.error(e); alert('Excluiu da tela, mas não excluiu no Supabase. Detalhe: '+(e.message||e)); }
+  };
+  try{ removeItem=window.removeItem; }catch(e){}
+
+  window.carregarTacografosSupabase=async function(){ const ok=await loadSupabase(); if((currentPage||'')==='tacografos') window.render_tacografos(); return ok; };
+  setTimeout(function(){ loadSupabase().then(function(){ if((currentPage||'')==='tacografos') window.render_tacografos(); }); },800);
+})();
+</script>
+
+
+
+<!-- Correção: pastas do Tacógrafo criadas pelo mês da Validade/Vencimento -->
+<script id="fix-tacografo-pastas-validade-vencimento">
+(function(){
+  'use strict';
+  function S(v){ return String(v==null?'':v).trim(); }
+  function C(v){ try{return typeof clean==='function'?clean(v):S(v).toLowerCase();}catch(e){return S(v).toLowerCase();} }
+  function E(v){ try{return typeof esc==='function'?esc(v):S(v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]});}catch(e){return S(v);} }
+  function F(v){ try{return typeof fmtDate==='function'?fmtDate(v):(v||'-');}catch(e){return v||'-';} }
+  function M(v){ v=S(v); return /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(0,7):(/^\d{4}-\d{2}$/.test(v)?v:''); }
+  function MN(m){ try{return typeof monthName==='function'?monthName(m):m;}catch(e){return m;} }
+  function TG(v){ try{return typeof statusTag==='function'?statusTag(v):'<span class="tag gray">'+E(v||'-')+'</span>';}catch(e){return '<span class="tag gray">'+E(v||'-')+'</span>';}}
+  function TB(title,heads,body){ try{return typeof table==='function'?table(title,heads,body):'<div class="table-card"><div class="table-head"><h3>'+E(title)+'</h3></div><div class="table-scroll"><table><thead><tr>'+heads.map(h=>'<th>'+E(h)+'</th>').join('')+'</tr></thead><tbody>'+(body||'<tr><td colspan="99">Nenhum registro.</td></tr>')+'</tbody></table></div></div>';}catch(e){return '';}}
+  function ST(items){ try{return typeof stats==='function'?stats(items):'';}catch(e){return '';}}
+  function FB(){ try{return typeof filterHtml==='function'?filterHtml('tacSearch','Buscar placa, emissão, validade, vencimento, situação ou observação...'):'<div class="filters"><input id="tacSearch" placeholder="Buscar placa..."></div>';}catch(e){return '<div class="filters"><input id="tacSearch" placeholder="Buscar placa..."></div>';}}
+  function arr(){ if(typeof data==='undefined') return []; if(!Array.isArray(data.tacografos)) data.tacografos=[]; return data.tacografos; }
+  function tacDate(r){ return S(r.validade||r.vencimento||r.data_validade||r.validade_tacografo||r.data||r.emissao||r.data_emissao||r.data_afericao||''); }
+  function tacMonth(r){ return M(tacDate(r)); }
+  function months(){ return Array.from(new Set(arr().map(tacMonth).filter(Boolean))).sort(); }
+  function getSel(){ try{ if(typeof folderSel!=='undefined' && folderSel) return folderSel.tacografos||''; }catch(e){} try{return selectedTacMonth||'';}catch(e){return '';} }
+  function setSel(m){ try{ if(typeof folderSel!=='undefined' && folderSel) folderSel.tacografos=m||''; }catch(e){} try{ selectedTacMonth=m||''; }catch(e){} }
+  function count(m){ const rows=arr().filter(r=>!m||tacMonth(r)===m); const placas=new Set(rows.map(r=>S(r.placa).replace(/\s+/g,'').toUpperCase()).filter(Boolean)).size; return rows.length+' registros • '+placas+' veículos'; }
+  function foldersHtml(ms){ const current=getSel(); const cards=[{mes:'',label:'Todos os meses'}].concat(ms.map(m=>({mes:m,label:MN(m)}))); return '<div class="folders">'+cards.map(f=>'<button type="button" class="folder '+(current===f.mes?'active':'')+'" onclick="selectFolderTacografoCorrigido(\''+f.mes+'\')"><div class="folder-icon">📁</div><strong>'+E(f.label)+'</strong><small>'+E(count(f.mes))+'</small></button>').join('')+'</div>'; }
+  window.selectFolderTacografoCorrigido=function(m){ setSel(m||''); if(typeof window.render_tacografos==='function') window.render_tacografos(); setTimeout(function(){document.getElementById('tacInfo')?.scrollIntoView({behavior:'smooth',block:'start'});},50); };
+  window.renderTacListEmpresa=window.renderTacListFinal=function(){
+    const target=document.getElementById('tacInfo'); if(!target) return;
+    const q=C(document.getElementById('tacSearch')?.value||''); const sel=getSel();
+    const rows=arr().filter(r=>(!sel||tacMonth(r)===sel)&&(!q||C(Object.values(r).join(' ')).includes(q)));
+    target.innerHTML=TB(sel?'Tacógrafos — '+MN(sel):'Tacógrafos — Todos os meses',['Placa','Emissão','Validade/Vencimento','Situação','Obs','Ações'],rows.map(function(r){
+      const val=S(r.validade||r.vencimento||r.data_validade||r.validade_tacografo||'');
+      const em=S(r.data||r.emissao||r.data_emissao||r.data_afericao||'');
+      return '<tr><td><span class="plate">'+E(r.placa)+'</span></td><td>'+F(em)+'</td><td>'+F(val||tacDate(r))+'</td><td>'+TG(r.status||r.situacao||'ativo')+'</td><td>'+E(r.obs||r.observacao||'-')+'</td><td class="row-actions"><button class="icon-btn" onclick="openForm(\'tacografos\','+Number(r.id)+')">✎</button><button class="icon-btn" onclick="removeItem(\'tacografos\','+Number(r.id)+')">×</button></td></tr>';
+    }).join(''));
+  };
+  window.render_tacografos=function(){
+    if(typeof setActions==='function') setActions('<button class="btn primary" onclick="openForm(\'tacografos\')">+ Novo tacógrafo</button>');
+    const ms=months(), sel=getSel(); const el=document.getElementById('tacografos'); if(!el) return;
+    el.innerHTML=ST([['Registros',arr().length,'tacógrafos'],['Ativos',arr().filter(x=>C(x.status||x.situacao).includes('ativo')||C(x.status||x.situacao).includes('ok')).length,'válidos'],['Pastas',ms.length,'por validade/vencimento'],['Selecionado',sel?MN(sel):'Todos','pasta atual']])+foldersHtml(ms)+FB()+'<div id="tacInfo"></div>';
+    const inp=document.getElementById('tacSearch'); if(inp) inp.oninput=window.renderTacListEmpresa; window.renderTacListEmpresa();
+  };
+  try{ render_tacografos=window.render_tacografos; }catch(e){}
+  // Depois de salvar tacógrafo, sempre recalcula as pastas pelo vencimento/validade e mostra a pasta correta.
+  const oldSave=window.saveModal || (typeof saveModal==='function'?saveModal:null);
+  window.saveModal=async function(){
+    const ctx=(typeof modalCtx!=='undefined' && modalCtx)?modalCtx:null;
+    const isTac=ctx && ctx.key==='tacografos';
+    if(!isTac) return oldSave?oldSave.apply(this,arguments):undefined;
+    const beforeIds=new Set(arr().map(x=>String(x.id)));
+    const ret=await (oldSave?oldSave.apply(this,arguments):undefined);
+    const newest=arr().slice().reverse().find(x=>!beforeIds.has(String(x.id))) || arr().slice().sort((a,b)=>Number(b.id||0)-Number(a.id||0))[0];
+    const m=newest?tacMonth(newest):'';
+    if(m) setSel(m); else setSel('');
+    window.render_tacografos();
+    return ret;
+  };
+  try{ saveModal=window.saveModal; }catch(e){}
+  setTimeout(function(){ if((typeof currentPage==='string'?currentPage:'')==='tacografos') window.render_tacografos(); },500);
+})();
+</script>
+
+
+
+<!-- Correção definitiva Tacógrafo: pasta fixa por Validade/Vencimento e salvamento sem perder mês -->
+<script id="fix-tacografo-pasta-nao-sumir-definitivo">
+(function(){
+  'use strict';
+  const LS_KEY='gf_tacografos_cache_vencimento_v2';
+  function str(v){return String(v==null?'':v).trim();}
+  function upper(v){return str(v).toUpperCase();}
+  function esc2(v){try{return typeof esc==='function'?esc(v):str(v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c));}catch(e){return str(v);}}
+  function clean2(v){try{return typeof clean==='function'?clean(v):str(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}catch(e){return str(v).toLowerCase();}}
+  function fmt(v){try{return typeof fmtDate==='function'?fmtDate(v):(str(v)||'-');}catch(e){return str(v)||'-';}}
+  function ym2(v){v=str(v);return /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(0,7):(/^\d{4}-\d{2}$/.test(v)?v:'');}
+  function mn(v){try{return typeof monthName==='function'?monthName(v):v;}catch(e){return v;}}
+  function tag(v){try{return typeof statusTag==='function'?statusTag(v):'<span class="tag gray">'+esc2(v||'-')+'</span>';}catch(e){return '<span class="tag gray">'+esc2(v||'-')+'</span>';}}
+  function db(){try{return typeof connectSupabase==='function'?connectSupabase():(window.supabaseClient||null);}catch(e){return null;}}
+  function list(){if(typeof data==='undefined') window.data={}; if(!Array.isArray(data.tacografos)) data.tacografos=[]; return data.tacografos;}
+  function pickVal(r){return str(r.validade||r.vencimento||r.data_validade||r.validade_tacografo||r.data_vencimento||'');}
+  function pickData(r){return str(r.data||r.emissao||r.data_emissao||r.data_afericao||r.afericao||r.aferido_em||'');}
+  function norm(r, fallback){r=r||{}; fallback=fallback||{}; const idv=Number(r.id||fallback.id||Date.now()+Math.floor(Math.random()*999)); return {
+    id:idv,
+    placa:upper(r.placa||r.veiculo||r.carro||fallback.placa||''),
+    data:pickData(r)||fallback.data||'',
+    validade:pickVal(r)||fallback.validade||'',
+    vencimento:pickVal(r)||fallback.validade||'',
+    status:str(r.status||r.situacao||r.resultado||fallback.status||'ativo'),
+    obs:str(r.obs||r.observacao||r.observacoes||fallback.obs||'')
+  };}
+  function saveCache(){try{localStorage.setItem(LS_KEY,JSON.stringify(list().map(norm)));}catch(e){}}
+  function loadCache(){try{const cached=JSON.parse(localStorage.getItem(LS_KEY)||'[]'); if(Array.isArray(cached)){cached.map(norm).filter(x=>x.placa).forEach(upsertLocal);}}catch(e){}}
+  function upsertLocal(obj){const arr=list(); const old=arr.find(x=>String(x.id)===String(obj.id)); const n=norm(obj,old); const i=arr.findIndex(x=>String(x.id)===String(n.id)); if(i>=0) arr[i]={...arr[i],...n}; else arr.push(n); saveCache(); return n;}
+  function removeLocal(id){data.tacografos=list().filter(x=>String(x.id)!==String(id)); saveCache();}
+  function mTac(r){return ym2(pickVal(r)||r.validade||r.vencimento||r.data_validade||r.data_vencimento||'');}
+  function getSel(){try{if(typeof folderSel!=='undefined'&&folderSel) return folderSel.tacografos||'';}catch(e){} try{return selectedTacMonth||'';}catch(e){return '';}}
+  function setSel(m){try{if(typeof folderSel!=='undefined'&&folderSel) folderSel.tacografos=m||'';}catch(e){} try{selectedTacMonth=m||'';}catch(e){} }
+  function months(){return Array.from(new Set(list().map(mTac).filter(Boolean))).sort();}
+  function tableCard(title,heads,rows){try{if(typeof table==='function') return table(title,heads,rows);}catch(e){} return '<div class="table-card"><div class="table-head"><h3>'+esc2(title)+'</h3></div><div class="table-scroll"><table><thead><tr>'+heads.map(h=>'<th>'+esc2(h)+'</th>').join('')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="99">Nenhum registro.</td></tr>')+'</tbody></table></div></div>';}
+  function stats2(items){try{return typeof stats==='function'?stats(items):'';}catch(e){return '';}}
+  function filter2(){try{return typeof filterHtml==='function'?filterHtml('tacSearch','Buscar placa, emissão, validade, vencimento, status ou observação...'):'<div class="filters"><input id="tacSearch" placeholder="Buscar..."></div>';}catch(e){return '<div class="filters"><input id="tacSearch" placeholder="Buscar..."></div>';}}
+  function folders(){const sel=getSel(); const all=[['','Todos os meses']].concat(months().map(m=>[m,mn(m)])); return '<div class="folders">'+all.map(([m,label])=>{const rows=list().filter(r=>!m||mTac(r)===m); return '<button type="button" class="folder '+(sel===m?'active':'')+'" onclick="selectTacFolderDef(\''+m+'\')"><div class="folder-icon">📁</div><strong>'+esc2(label)+' <span class="folder-count">'+rows.length+'</span></strong><small>Baseado na validade/vencimento</small></button>';}).join('')+'</div>';}
+  async function tableName(){const c=db(); if(!c) return null; for(const t of ['tacografos','tacografo']){try{const r=await c.from(t).select('*').limit(1); if(!r.error) return t;}catch(e){}} return null;}
+  function missingCol(err){const txt=str(err&& (err.message||err.details||err.hint) || err); const m=txt.match(/Could not find the '([^']+)' column|column "([^"]+)" does not exist/i); return m?(m[1]||m[2]):'';}
+  async function saveRemote(obj){const c=db(), t=await tableName(); if(!c||!t) return null; const n=norm(obj); let payload={id:Number(n.id),placa:n.placa,data:n.data||null,validade:n.validade||null,vencimento:n.validade||null,data_validade:n.validade||null,status:n.status||'ativo',obs:n.obs||'',observacao:n.obs||''}; let last=null; for(let i=0;i<12;i++){try{const r=await c.from(t).upsert(payload,{onConflict:'id'}).select().single(); if(!r.error) return norm(r.data,n); throw r.error;}catch(e){last=e; const col=missingCol(e); if(col && Object.prototype.hasOwnProperty.call(payload,col)){delete payload[col]; continue;} throw e;}} throw last||new Error('Não salvou no Supabase');}
+  async function loadRemote(){const c=db(), t=await tableName(); if(!c||!t) return false; try{const r=await c.from(t).select('*'); if(r.error) throw r.error; const existing={}; list().forEach(x=>existing[String(x.id)]=norm(x)); (r.data||[]).forEach(row=>{const fb=existing[String(row.id)]||{}; const n=norm(row,fb); if(n.placa||n.data||n.validade) upsertLocal(n);}); data.tacografos=list().map(norm).sort((a,b)=>String(a.validade||'').localeCompare(String(b.validade||''))||String(a.placa).localeCompare(String(b.placa))); saveCache(); return true;}catch(e){console.warn('Tacógrafo: não carregou do Supabase',e); return false;}}
+  async function deleteRemote(id){const c=db(), t=await tableName(); if(!c||!t) return false; const r=await c.from(t).delete().eq('id',Number(id)); if(r.error) throw r.error; return true;}
+  window.selectTacFolderDef=function(m){setSel(m||''); window.render_tacografos();};
+  window.renderTacListEmpresa=window.renderTacListFinal=function(){const target=document.getElementById('tacInfo'); if(!target) return; const q=clean2(document.getElementById('tacSearch')?.value||''); const sel=getSel(); const rows=list().filter(r=>(!sel||mTac(r)===sel)&&(!q||clean2(Object.values(r).join(' ')).includes(q))); target.innerHTML=tableCard(sel?'Tacógrafos — '+mn(sel):'Tacógrafos — Todos os meses',['Placa','Emissão/Aferição','Validade/Vencimento','Status','Obs','Ações'],rows.map(r=>'<tr><td><span class="plate">'+esc2(r.placa)+'</span></td><td>'+fmt(r.data)+'</td><td>'+fmt(r.validade||r.vencimento)+'</td><td>'+tag(r.status)+'</td><td>'+esc2(r.obs||'-')+'</td><td class="row-actions"><button class="icon-btn" onclick="openForm(\'tacografos\','+Number(r.id)+')">✎</button><button class="icon-btn" onclick="removeItem(\'tacografos\','+Number(r.id)+')">×</button></td></tr>').join(''));};
+  window.render_tacografos=function(){loadCache(); if(typeof setActions==='function') setActions('<button class="btn primary" onclick="openForm(\'tacografos\')">+ Novo tacógrafo</button>'); const sel=getSel(); const el=document.getElementById('tacografos'); if(!el) return; el.innerHTML=stats2([['Registros',list().length,'tacógrafos'],['Ativos',list().filter(x=>clean2(x.status).includes('ativo')||clean2(x.status).includes('ok')).length,'válidos'],['Pastas',months().length,'por validade/vencimento'],['Selecionado',sel?mn(sel):'Todos','pasta atual']])+folders()+filter2()+'<div id="tacInfo"></div>'; const inp=document.getElementById('tacSearch'); if(inp) inp.oninput=window.renderTacListEmpresa; window.renderTacListEmpresa();};
+  try{render_tacografos=window.render_tacografos;}catch(e){}
+  const oldOpen=window.openForm|| (typeof openForm==='function'?openForm:null);
+  window.openForm=function(key,itemId=null){if(key!=='tacografos') return oldOpen?oldOpen.apply(this,arguments):undefined; const item=itemId?list().find(x=>String(x.id)===String(itemId)):null; const r=norm(item||{id:Date.now()+Math.floor(Math.random()*999),status:'ativo'}); modalCtx={key:'tacografos',itemId:itemId||null,tempId:r.id}; document.getElementById('modalTitle').textContent=(itemId?'Editar ':'Adicionar ')+'tacógrafo'; document.getElementById('modalBody').innerHTML='<div class="form-grid"><div class="field"><label>Placa</label><input id="f_placa" type="text" value="'+esc2(r.placa)+'"></div><div class="field"><label>Data da emissão/aferição</label><input id="f_data" type="date" value="'+esc2(r.data)+'"></div><div class="field"><label>Validade/Vencimento</label><input id="f_validade" type="date" value="'+esc2(r.validade||r.vencimento)+'"></div><div class="field"><label>Status</label><select id="f_status"><option value="ativo" '+(r.status==='ativo'?'selected':'')+'>Ativo</option><option value="ok" '+(r.status==='ok'?'selected':'')+'>OK</option><option value="pendente" '+(r.status==='pendente'?'selected':'')+'>Pendente</option><option value="vencido" '+(r.status==='vencido'?'selected':'')+'>Vencido</option><option value="inativo" '+(r.status==='inativo'?'selected':'')+'>Inativo</option></select></div><div class="field full"><label>Observação</label><input id="f_obs" type="text" value="'+esc2(r.obs)+'"></div></div>'; document.getElementById('modalBg').classList.add('open');};
+  try{openForm=window.openForm;}catch(e){}
+  const oldSave=window.saveModal|| (typeof saveModal==='function'?saveModal:null);
+  window.saveModal=async function(){const ctx=(typeof modalCtx!=='undefined'&&modalCtx)?{...modalCtx}:null; if(!ctx||ctx.key!=='tacografos') return oldSave?oldSave.apply(this,arguments):undefined; const obj=norm({id:Number(ctx.itemId||ctx.tempId||Date.now()),placa:document.getElementById('f_placa')?.value||'',data:document.getElementById('f_data')?.value||'',validade:document.getElementById('f_validade')?.value||'',status:document.getElementById('f_status')?.value||'ativo',obs:document.getElementById('f_obs')?.value||''}); if(!obj.placa){alert('Informe a placa.'); return;} if(!obj.validade){alert('Informe a validade/vencimento para criar a pasta do mês.'); return;} upsertLocal(obj); setSel(mTac(obj)); if(typeof closeModal==='function') closeModal(); window.render_tacografos(); try{const saved=await saveRemote(obj); upsertLocal(norm(saved,obj)); setSel(mTac(norm(saved,obj))||mTac(obj)); await loadRemote(); setSel(mTac(obj)||getSel()); window.render_tacografos(); if(typeof toast==='function') toast('Tacógrafo salvo e pasta mantida.');}catch(e){console.error(e); window.render_tacografos(); alert('Apareceu na tela, mas não salvou no Supabase. Detalhe: '+(e.message||e));}};
+  try{saveModal=window.saveModal;}catch(e){}
+  const oldRemove=window.removeItem|| (typeof removeItem==='function'?removeItem:null);
+  window.removeItem=async function(key,itemId){if(key!=='tacografos') return oldRemove?oldRemove.apply(this,arguments):undefined; if(!confirm('Excluir este tacógrafo?')) return; removeLocal(itemId); window.render_tacografos(); try{await deleteRemote(itemId); if(typeof toast==='function') toast('Tacógrafo excluído.');}catch(e){console.error(e); alert('Excluiu da tela, mas não excluiu no Supabase. Detalhe: '+(e.message||e));}};
+  try{removeItem=window.removeItem;}catch(e){}
+  window.carregarTacografosSupabase=async function(){loadCache(); const ok=await loadRemote(); if((currentPage||'')==='tacografos') window.render_tacografos(); return ok;};
+  loadCache(); setTimeout(function(){window.carregarTacografosSupabase();},900);
+})();
+</script>
+
 </body>
 </html>
