@@ -2017,197 +2017,6 @@ html[data-theme="dark"] .folder.editable-folder .folder-card-actions .icon-btn{b
 </script>
 
 
-<script id="supabase-sync-modulos-faltantes">
-(function(){
-  const SYNC_KEYS = ['motoristas','veiculos','tacografos','oleo','manutencoes','producao'];
-  const TABLES = {
-    motoristas:'motoristas', veiculos:'veiculos', tacografos:'tacografos', oleo:'oleo', manutencoes:'manutencoes', producao:'producao',
-    producaoMeses:'producao_meses', manutencoesMeses:'manutencoes_meses'
-  };
-  function db(){ return (typeof connectSupabase==='function') ? connectSupabase() : null; }
-  function n(v){ return v===undefined || v===null ? '' : v; }
-  function arr(key){ if(!data[key]) data[key]=[]; return data[key]; }
-  function rowToApp(key,r){
-    const o={...r};
-    if(key==='motoristas'){
-      o.id=Number(o.id); o.pontos=Number(o.pontos||0);
-      o.cnhArquivo=o.cnhArquivo || o.cnharquivo || '';
-    }
-    if(key==='veiculos') o.id=Number(o.id);
-    if(key==='manutencoes'){ o.id=Number(o.id); o.valor=Number(o.valor||0); }
-    if(key==='producao') o.id=Number(o.id);
-    if(key==='oleo'){
-      o.id=Number(o.id); o.km=Number(o.km||0);
-      o.proxKm=Number(o.proxKm ?? o.proxkm ?? 0);
-    }
-    if(key==='tacografos') o.id=Number(o.id);
-    delete o.created_at; delete o.proxkm; delete o.cnharquivo;
-    return o;
-  }
-  function appToRow(key,o){
-    const r={...o};
-    if(key==='motoristas'){
-      r.cnharquivo = n(o.cnhArquivo || o.cnharquivo);
-      delete r.cnhArquivo; delete r.cnhUrl; delete r.multas;
-      r.pontos=Number(o.pontos||0);
-    }
-    if(key==='oleo'){
-      r.proxkm = Number(o.proxKm ?? o.proxkm ?? 0);
-      delete r.proxKm;
-      r.km=Number(o.km||0);
-    }
-    if(key==='manutencoes') r.valor=Number(o.valor||0);
-    if(r.id!==undefined) r.id=Number(r.id);
-    delete r.st;
-    return r;
-  }
-  async function carregarLista(key){
-    const client=db(); if(!client || !TABLES[key]) return;
-    const orderCol = key==='producao' ? 'data' : 'id';
-    const {data:rows,error}=await client.from(TABLES[key]).select('*').order(orderCol,{ascending:key!=='producao'});
-    if(error) throw error;
-    if(Array.isArray(rows) && rows.length){
-      const incoming = rows.map(r=>rowToApp(key,r));
-      const merged = Array.isArray(data[key]) ? [...data[key]] : [];
-      for(const item of incoming){
-        const idx = merged.findIndex(x=>String(x.id)===String(item.id));
-        if(idx >= 0) merged[idx] = {...merged[idx], ...item};
-        else merged.push(item);
-      }
-      data[key] = merged;
-    }
-  }
-  async function carregarMeses(key,tableKey){
-    const client=db(); if(!client) return;
-    const {data:rows,error}=await client.from(TABLES[tableKey]).select('*').order('mes',{ascending:true});
-    if(error) throw error;
-    if(Array.isArray(rows) && rows.length){ data[key]=rows.map(r=>({mes:r.mes})); }
-  }
-  async function salvarRegistroSupabase(key,obj){
-    const client=db(); if(!client || !TABLES[key] || !obj) return false;
-    const {data:row,error}=await client.from(TABLES[key]).upsert(appToRow(key,obj),{onConflict:'id'}).select().single();
-    if(error) throw error;
-    Object.assign(obj,rowToApp(key,row));
-    return true;
-  }
-  async function excluirRegistroSupabase(key,itemId){
-    const client=db(); if(!client || !TABLES[key]) return false;
-    const {error}=await client.from(TABLES[key]).delete().eq('id',Number(itemId));
-    if(error) throw error;
-    return true;
-  }
-  async function salvarMesSupabase(tableKey,mes){
-    const client=db(); if(!client || !/^\d{4}-\d{2}$/.test(mes||'')) return false;
-    const {error}=await client.from(TABLES[tableKey]).upsert({mes},{onConflict:'mes'});
-    if(error) throw error;
-    return true;
-  }
-  async function excluirMesSupabase(tableKey,mes){
-    const client=db(); if(!client) return false;
-    const {error}=await client.from(TABLES[tableKey]).delete().eq('mes',mes);
-    if(error) throw error;
-    return true;
-  }
-  async function carregarModulosFaltantesSupabase(){
-    try{
-      const client=db(); if(!client) return;
-      for(const key of SYNC_KEYS){ await carregarLista(key); }
-      await carregarMeses('producaoMeses','producaoMeses');
-      await carregarMeses('manutencoesMeses','manutencoesMeses');
-      if(typeof renderNav==='function') renderNav();
-      if(typeof showPage==='function') showPage(currentPage||'dashboard');
-      if(typeof toast==='function') toast('Dados do Supabase sincronizados.');
-    }catch(e){
-      console.warn('Sincronização parcial com Supabase:', e);
-      if(typeof toast==='function') toast('Algumas tabelas ainda não existem no Supabase.');
-    }
-  }
-
-  window.salvarRegistroSupabase = salvarRegistroSupabase;
-  window.excluirRegistroSupabase = excluirRegistroSupabase;
-  window.carregarModulosFaltantesSupabase = carregarModulosFaltantesSupabase;
-
-  const oldSave = window.saveModal;
-  window.saveModal = async function(){
-    const ctx = modalCtx ? {...modalCtx} : null;
-    const before = ctx && data[ctx.key] ? new Set(data[ctx.key].map(x=>String(x.id))) : new Set();
-    await oldSave.apply(this, arguments);
-    if(!ctx || !SYNC_KEYS.includes(ctx.key)) return;
-    let obj = ctx.itemId ? arr(ctx.key).find(x=>String(x.id)===String(ctx.itemId)) : arr(ctx.key).find(x=>!before.has(String(x.id)));
-    if(!obj) obj = arr(ctx.key).slice().sort((a,b)=>Number(b.id||0)-Number(a.id||0))[0];
-    if(ctx.key==='producao' && obj?.mes) await salvarMesSupabase('producaoMeses',obj.mes).catch(console.warn);
-    if(ctx.key==='manutencoes' && obj?.data && typeof ym==='function') await salvarMesSupabase('manutencoesMeses',ym(obj.data)).catch(console.warn);
-    await salvarRegistroSupabase(ctx.key,obj);
-    if(typeof toast==='function') toast(labelKey(ctx.key).replace(/^./,c=>c.toUpperCase())+' salvo no Supabase.');
-  };
-
-  window.removeItem = async function(key,itemId){
-    if(!confirm('Excluir este registro?')) return;
-    try{
-      if(key==='multas' && typeof removerMultaSupabase==='function') await removerMultaSupabase(itemId);
-      else if(SYNC_KEYS.includes(key)) await excluirRegistroSupabase(key,itemId);
-      arr(key); data[key]=data[key].filter(x=>String(x.id)!==String(itemId));
-      if(typeof toast==='function') toast(SYNC_KEYS.includes(key)||key==='multas'?'Registro excluído do Supabase.':'Registro removido.');
-      if(typeof showPage==='function') showPage(currentPage);
-    }catch(e){ console.error(e); alert('Erro ao excluir: '+(e.message||e)); }
-  };
-
-  const oldOpenAddMonth = window.openAddMonth;
-  window.openAddMonth = async function(){
-    const antes=(data.producaoMeses||[]).map(x=>x.mes).join('|');
-    const ret=oldOpenAddMonth ? oldOpenAddMonth.apply(this,arguments) : undefined;
-    const depois=(data.producaoMeses||[]).map(x=>x.mes).filter(Boolean);
-    const novo=depois.find(m=>!antes.split('|').includes(m)) || selectedProdMonth;
-    if(novo) await salvarMesSupabase('producaoMeses',novo).catch(e=>{console.warn(e); toast('Pasta criada localmente, mas não salvou no Supabase.');});
-    return ret;
-  };
-
-  const oldEditProdMonth = window.editProdMonth;
-  window.editProdMonth = async function(oldMes){
-    const before=(data.producaoMeses||[]).map(x=>x.mes);
-    const ret=oldEditProdMonth ? oldEditProdMonth.apply(this,arguments) : undefined;
-    const after=(data.producaoMeses||[]).map(x=>x.mes);
-    const novo=after.find(m=>!before.includes(m));
-    if(novo){ await excluirMesSupabase('producaoMeses',oldMes).catch(console.warn); await salvarMesSupabase('producaoMeses',novo).catch(console.warn); }
-    for(const r of data.producao.filter(x=>x.mes===novo)){ await salvarRegistroSupabase('producao',r).catch(console.warn); }
-    return ret;
-  };
-  const oldDeleteProdMonth = window.deleteProdMonth;
-  window.deleteProdMonth = async function(mes){
-    const ret=oldDeleteProdMonth ? oldDeleteProdMonth.apply(this,arguments) : undefined;
-    await excluirMesSupabase('producaoMeses',mes).catch(console.warn);
-    return ret;
-  };
-
-  const oldOpenAddManMonth = window.openAddManMonth;
-  window.openAddManMonth = async function(){
-    const antes=(data.manutencoesMeses||[]).map(x=>typeof x==='string'?x:x.mes).join('|');
-    const ret=oldOpenAddManMonth ? oldOpenAddManMonth.apply(this,arguments) : undefined;
-    const depois=(data.manutencoesMeses||[]).map(x=>typeof x==='string'?x:x.mes).filter(Boolean);
-    const novo=depois.find(m=>!antes.split('|').includes(m)) || selectedManMonth;
-    if(novo) await salvarMesSupabase('manutencoesMeses',novo).catch(console.warn);
-    return ret;
-  };
-  const oldEditManMonth = window.editManMonth;
-  window.editManMonth = async function(oldMes){
-    const before=(data.manutencoesMeses||[]).map(x=>typeof x==='string'?x:x.mes);
-    const ret=oldEditManMonth ? oldEditManMonth.apply(this,arguments) : undefined;
-    const after=(data.manutencoesMeses||[]).map(x=>typeof x==='string'?x:x.mes);
-    const novo=after.find(m=>!before.includes(m));
-    if(novo){ await excluirMesSupabase('manutencoesMeses',oldMes).catch(console.warn); await salvarMesSupabase('manutencoesMeses',novo).catch(console.warn); }
-    for(const r of data.manutencoes.filter(x=>ym(x.data)===novo)){ await salvarRegistroSupabase('manutencoes',r).catch(console.warn); }
-    return ret;
-  };
-  const oldDeleteManMonth = window.deleteManMonth;
-  window.deleteManMonth = async function(mes){
-    const ret=oldDeleteManMonth ? oldDeleteManMonth.apply(this,arguments) : undefined;
-    await excluirMesSupabase('manutencoesMeses',mes).catch(console.warn);
-    return ret;
-  };
-
-  setTimeout(carregarModulosFaltantesSupabase, 1400);
-})();
-</script>
 
 
 
@@ -2447,13 +2256,124 @@ html[data-theme="dark"] .folder.editable-folder .folder-card-actions .icon-btn{b
 })();
 </script>
 
-<style id="veiculos-separados-final-css">
-.vehicle-status-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}.vehicle-status-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow);border-left:5px solid #e5e7eb}.vehicle-status-card.green{border-left-color:var(--green)}.vehicle-status-card.amber{border-left-color:var(--amber)}.vehicle-status-card.gray{border-left-color:#64748b}.vehicle-status-card span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900}.vehicle-status-card strong{display:block;font-size:24px;margin-top:5px}.vehicle-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.vehicle-tabs .btn.active{background:var(--primary);border-color:var(--primary);color:#fff}.vehicle-split-grid{display:grid;gap:14px}.vehicle-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.vehicle-section-title .tag{text-transform:none}.vehicle-empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:16px;background:#fff}@media(max-width:760px){.vehicle-status-bar{grid-template-columns:1fr}.vehicle-tabs .btn{flex:1}}
-</style>
 
-<script id="fix-veiculos-e-sync-supabase-real-final">
+
+<style id="veiculos-separados-ativos-manutencao-css">
+/* Separação dos veículos por situação: ativos x em manutenção */
+.vehicle-status-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;align-items:center}
+.vehicle-status-tabs .btn{box-shadow:none}
+.vehicle-status-tabs .btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.vehicle-split-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.vehicle-split-grid .table-card{margin-bottom:0}
+.vehicle-status-note{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;font-weight:700;margin-top:8px}
+.vehicle-status-note .tag{text-transform:none;letter-spacing:0}
+.vehicle-section-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vehicle-section-title .tag{font-size:10px}
+html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
+</style>
+<script id="veiculos-separados-ativos-manutencao-js">
 (function(){
-  const CANDIDATE_TABLES = {
+  window.selectedVehicleStatus = window.selectedVehicleStatus || 'todos';
+  function statusNorm(v){
+    v=String(v||'ativo').toLowerCase().trim();
+    if(['manutencao','manutenção','em manutencao','em manutenção'].includes(v)) return 'manutencao';
+    if(['inativo','baixado','parado'].includes(v)) return 'inativo';
+    return 'ativo';
+  }
+  function statusLabel(v){
+    v=statusNorm(v);
+    if(v==='manutencao') return 'Em manutenção';
+    if(v==='inativo') return 'Inativo';
+    return 'Ativo';
+  }
+  function statusTagVeiculo(v){
+    v=statusNorm(v);
+    if(typeof statusTag==='function') return statusTag(v);
+    const cls=v==='manutencao'?'amber':(v==='inativo'?'red':'green');
+    return `<span class="tag ${cls}">${statusLabel(v)}</span>`;
+  }
+  function vehicleRows(rows){
+    return rows.map(r=>`<tr>
+      <td><span class="plate">${esc(r.placa)}</span></td>
+      <td>${esc(r.renavam||'-')}</td>
+      <td>${esc(r.modelo||'-')}</td>
+      <td>${esc(r.motorista||'-')}</td>
+      <td>${statusTagVeiculo(r.status)}</td>
+      <td class="row-actions"><button class="icon-btn" title="Editar" onclick="openForm('veiculos',${r.id})">✎</button><button class="icon-btn" title="Excluir" onclick="removeItem('veiculos',${r.id})">×</button></td>
+    </tr>`).join('');
+  }
+  function vehicleTable(title, rows, hint){
+    return table(`<span class="vehicle-section-title">${title} <span class="tag gray">${rows.length}</span></span>`, ['Placa','Renavam','Modelo','Motorista','Status','Ações'], vehicleRows(rows) || `<tr><td colspan="6"><div class="empty">${hint}</div></td></tr>`);
+  }
+  window.setVehicleStatusFilter=function(v){
+    window.selectedVehicleStatus=v||'todos';
+    if(typeof renderVeiculosList==='function') renderVeiculosList();
+  };
+  window.render_veiculos=function(){
+    setActions('<button class="btn primary" onclick="openForm(\'veiculos\')">+ Novo veículo</button>');
+    const total=data.veiculos.length;
+    const ativos=data.veiculos.filter(x=>statusNorm(x.status)==='ativo').length;
+    const manut=data.veiculos.filter(x=>statusNorm(x.status)==='manutencao').length;
+    const inativos=data.veiculos.filter(x=>statusNorm(x.status)==='inativo').length;
+    document.getElementById('veiculos').innerHTML=
+      stats([['Veículos',total,'frota cadastrada'],['Ativos',ativos,'operando'],['Em manutenção',manut,'separados'],['Inativos',inativos,'fora de operação']])+
+      `<div class="filters">
+        <div class="filter-row two">
+          <input id="veiSearch" placeholder="Buscar placa, modelo, renavam, motorista ou status...">
+          <select id="veiStatusSelect">
+            <option value="todos">Todos os veículos</option>
+            <option value="ativo">Somente ativos</option>
+            <option value="manutencao">Somente em manutenção</option>
+            <option value="inativo">Somente inativos</option>
+          </select>
+        </div>
+        <div class="vehicle-status-note">
+          <span>Separação automática pelo campo Status:</span>
+          <span class="tag green">Ativo</span>
+          <span class="tag amber">Em manutenção</span>
+          <span class="tag red">Inativo</span>
+        </div>
+      </div>
+      <div class="vehicle-status-tabs">
+        <button class="btn" data-vtab="todos" onclick="setVehicleStatusFilter('todos')">Todos</button>
+        <button class="btn" data-vtab="ativo" onclick="setVehicleStatusFilter('ativo')">Ativos</button>
+        <button class="btn" data-vtab="manutencao" onclick="setVehicleStatusFilter('manutencao')">Em manutenção</button>
+        <button class="btn" data-vtab="inativo" onclick="setVehicleStatusFilter('inativo')">Inativos</button>
+      </div>
+      <div id="veiculosTable"></div>`;
+    document.getElementById('veiSearch').oninput=renderVeiculosList;
+    document.getElementById('veiStatusSelect').value=window.selectedVehicleStatus||'todos';
+    document.getElementById('veiStatusSelect').onchange=e=>setVehicleStatusFilter(e.target.value);
+    renderVeiculosList();
+  };
+  window.renderVeiculosList=function(){
+    const input=document.getElementById('veiSearch');
+    const q=clean(input?input.value:'');
+    const selected=window.selectedVehicleStatus||'todos';
+    document.querySelectorAll('[data-vtab]').forEach(b=>b.classList.toggle('active',b.dataset.vtab===selected));
+    const sel=document.getElementById('veiStatusSelect'); if(sel && sel.value!==selected) sel.value=selected;
+    let rows=(data.veiculos||[]).filter(r=>!q||clean(Object.values(r).join(' ')).includes(q));
+    if(selected!=='todos') rows=rows.filter(r=>statusNorm(r.status)===selected);
+    const ativos=rows.filter(r=>statusNorm(r.status)==='ativo');
+    const manut=rows.filter(r=>statusNorm(r.status)==='manutencao');
+    const inativos=rows.filter(r=>statusNorm(r.status)==='inativo');
+    let html='';
+    if(selected==='todos'){
+      html=`<div class="vehicle-split-grid">${vehicleTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.')}${vehicleTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.')}${inativos.length?vehicleTable('Veículos inativos',inativos,''):''}</div>`;
+    }else if(selected==='ativo') html=vehicleTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.');
+    else if(selected==='manutencao') html=vehicleTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.');
+    else html=vehicleTable('Veículos inativos',inativos,'Nenhum veículo inativo encontrado.');
+    const target=document.getElementById('veiculosTable'); if(target) target.innerHTML=html;
+  };
+})();
+</script>
+
+
+
+<script id="sync-supabase-seguro-final-luiz">
+(function(){
+  'use strict';
+  const TABLES = {
     motoristas:['motoristas'],
     veiculos:['veiculos'],
     tacografos:['tacografos','tacografo'],
@@ -2464,232 +2384,166 @@ html[data-theme="dark"] .folder.editable-folder .folder-card-actions .icon-btn{b
     producaoMeses:['producao_meses','pastas_producao'],
     manutencoesMeses:['manutencoes_meses','pastas_manutencoes']
   };
-  const SYNC_KEYS = ['motoristas','veiculos','tacografos','oleo','manutencoes','producao','pontos'];
-  const tableCache = {};
-  const quietMissing = {};
+  const SYNC_KEYS=['motoristas','veiculos','tacografos','oleo','manutencoes','producao','pontos'];
+  const cache={};
   const oldSaveModal = window.saveModal || saveModal;
   const oldRemoveItem = window.removeItem || removeItem;
-  const oldShowPage = window.showPage || showPage;
 
-  function client(){ return typeof connectSupabase==='function' ? connectSupabase() : null; }
-  function localToast(msg){ if(typeof toast==='function') toast(msg); }
-  function norm(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
-  function asNumber(v){ const n = Number(v||0); return Number.isFinite(n) ? n : 0; }
-  function emptyToNull(v){ return v === '' || v === undefined ? null : v; }
-  function dateOrNull(v){ return /^\d{4}-\d{2}-\d{2}$/.test(String(v||'')) ? v : null; }
-  function currentArray(key){ if(!data[key]) data[key]=[]; return data[key]; }
+  function db(){ try{return typeof connectSupabase==='function'?connectSupabase():null;}catch(e){return null;} }
+  function say(m){ try{ if(typeof toast==='function') toast(m); }catch(e){} }
+  function num(v){ const n=Number(v||0); return Number.isFinite(n)?n:0; }
+  function date(v){ v=String(v||''); return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null; }
+  function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+  function upper(s){ return String(s||'').toUpperCase(); }
+  function arr(key){ if(!data[key]) data[key]=[]; return data[key]; }
 
-  async function findTable(key){
-    const db=client(); if(!db) return null;
-    if(tableCache[key]) return tableCache[key];
-    const tries=CANDIDATE_TABLES[key]||[key];
-    for(const table of tries){
-      try{
-        const {error}=await db.from(table).select('*').limit(1);
-        if(!error){ tableCache[key]=table; return table; }
-      }catch(e){}
+  async function tableFor(key){
+    if(cache[key]) return cache[key];
+    const c=db(); if(!c) return null;
+    for(const t of (TABLES[key]||[key])){
+      try{ const {error}=await c.from(t).select('id').limit(1); if(!error){ cache[key]=t; return t; } }catch(e){}
     }
-    if(!quietMissing[key]){ console.warn('Tabela não encontrada para', key, tries); quietMissing[key]=true; }
     return null;
   }
-
   function rowToApp(key,r){
-    const o={...(r||{})};
-    delete o.created_at; delete o.updated_at;
+    const o={...(r||{})}; delete o.created_at; delete o.updated_at;
     if(o.id!==undefined) o.id=Number(o.id);
-    if(key==='motoristas'){
-      o.cnhArquivo=o.cnhArquivo || o.cnharquivo || '';
-      o.pontos=asNumber(o.pontos);
-      delete o.cnharquivo;
-    }
-    if(key==='oleo'){
-      o.km=asNumber(o.km);
-      o.proxKm=asNumber(o.proxKm ?? o.proxkm ?? o.prox_km);
-      delete o.proxkm; delete o.prox_km;
-    }
-    if(key==='manutencoes') o.valor=asNumber(o.valor);
-    if(key==='pontos') o.pontos=asNumber(o.pontos);
+    if(key==='oleo'){ o.proxKm=num(o.proxKm??o.proxkm??o.prox_km); o.km=num(o.km); delete o.proxkm; delete o.prox_km; }
+    if(key==='motoristas'){ o.cnhArquivo=o.cnhArquivo||o.cnharquivo||''; o.pontos=num(o.pontos); delete o.cnharquivo; }
+    if(key==='manutencoes') o.valor=num(o.valor);
+    if(key==='pontos') o.pontos=num(o.pontos);
     return o;
   }
-
-  function basePayload(key,o){
+  function payload(key,o){
     o=o||{};
-    const r={id:Number(o.id || (typeof id==='function'?id():Date.now()))};
-    if(key==='motoristas') Object.assign(r,{nome:o.nome||'',funcao:o.funcao||'',departamento:o.departamento||'',cpf:o.cpf||'',cnh:o.cnh||'',categoria:o.categoria||'',validade:dateOrNull(o.validade),status:o.status||'ativo',cnharquivo:o.cnhArquivo||o.cnharquivo||'',pontos:asNumber(o.pontos)});
-    if(key==='veiculos') Object.assign(r,{placa:(o.placa||'').toUpperCase(),modelo:o.modelo||'',linha:o.linha||'',ano:o.ano===''?null:asNumber(o.ano),motorista:o.motorista||'',status:o.status||'ativo'});
-    if(key==='tacografos') Object.assign(r,{placa:(o.placa||'').toUpperCase(),data:dateOrNull(o.data),validade:dateOrNull(o.validade),status:o.status||'',obs:o.obs||''});
-    if(key==='oleo') Object.assign(r,{placa:(o.placa||'').toUpperCase(),data:dateOrNull(o.data),km:asNumber(o.km),proxkm:asNumber(o.proxKm ?? o.proxkm),obs:o.obs||''});
-    if(key==='manutencoes') Object.assign(r,{data:dateOrNull(o.data),placa:(o.placa||'').toUpperCase(),tipo:o.tipo||'',origem:o.origem||'',descricao:o.descricao||'',valor:asNumber(o.valor),status:o.status||'',anexo:o.anexo||'',obs:o.obs||''});
-    if(key==='producao') Object.assign(r,{mes:o.mes || (typeof ym==='function'?ym(o.data):''),data:dateOrNull(o.data),placa:(o.placa||'').toUpperCase(),servico:o.servico||'',responsavel:o.responsavel||'',obs:o.obs||'',anexo:o.anexo||''});
-    if(key==='pontos') Object.assign(r,{motorista:o.motorista||'',data:dateOrNull(o.data),placa:(o.placa||'').toUpperCase(),auto:o.auto||'',gravidade:o.gravidade||'',pontos:asNumber(o.pontos),aceitou:o.aceitou||'Pendente',multa_id:o.multaId||o.multa_id||o.origem_multa_id||null});
-    Object.keys(r).forEach(k=>{ if(r[k]===undefined) delete r[k]; });
-    return r;
+    const p={id:Number(o.id || (typeof id==='function'?id():Date.now()))};
+    if(key==='motoristas') Object.assign(p,{nome:o.nome||'',funcao:o.funcao||'',departamento:o.departamento||'',cpf:o.cpf||'',cnh:o.cnh||'',categoria:o.categoria||'',validade:date(o.validade),status:o.status||'ativo',cnharquivo:o.cnhArquivo||o.cnharquivo||'',pontos:num(o.pontos)});
+    if(key==='veiculos') Object.assign(p,{placa:upper(o.placa),modelo:o.modelo||'',linha:o.linha||'',ano:o.ano===''?null:num(o.ano),motorista:o.motorista||'',status:o.status||'ativo'});
+    if(key==='tacografos') Object.assign(p,{placa:upper(o.placa),data:date(o.data),validade:date(o.validade),status:o.status||'',obs:o.obs||''});
+    if(key==='oleo') Object.assign(p,{placa:upper(o.placa),data:date(o.data),km:num(o.km),proxkm:num(o.proxKm??o.proxkm),obs:o.obs||''});
+    if(key==='manutencoes') Object.assign(p,{data:date(o.data),placa:upper(o.placa),tipo:o.tipo||'',origem:o.origem||'',descricao:o.descricao||'',valor:num(o.valor),status:o.status||'',anexo:o.anexo||'',obs:o.obs||''});
+    if(key==='producao') Object.assign(p,{mes:o.mes||(typeof ym==='function'?ym(o.data):''),data:date(o.data),placa:upper(o.placa),servico:o.servico||'',responsavel:o.responsavel||'',obs:o.obs||'',anexo:o.anexo||''});
+    if(key==='pontos') Object.assign(p,{motorista:o.motorista||'',data:date(o.data),placa:upper(o.placa),auto:o.auto||'',gravidade:o.gravidade||'',pontos:num(o.pontos),aceitou:o.aceitou||'Pendente',multa_id:o.multaId||o.multa_id||o.origem_multa_id||null});
+    Object.keys(p).forEach(k=>{ if(p[k]===undefined) delete p[k]; });
+    return p;
   }
-
-  function payloadVariants(key,obj){
-    const p=basePayload(key,obj), variants=[p];
+  function variants(key,o){
+    const p=payload(key,o), v=[p];
     if(key==='oleo'){
-      const v2={...p, proxKm:p.proxkm}; delete v2.proxkm; variants.push(v2);
-      const v3={...p, prox_km:p.proxkm}; delete v3.proxkm; variants.push(v3);
+      const a={...p,proxKm:p.proxkm}; delete a.proxkm; v.push(a);
+      const b={...p,prox_km:p.proxkm}; delete b.proxkm; v.push(b);
     }
-    if(key==='motoristas'){
-      const v2={...p, cnhArquivo:p.cnharquivo}; delete v2.cnharquivo; variants.push(v2);
-    }
-    if(key==='manutencoes'){
-      const v2={...p}; delete v2.anexo; delete v2.obs; variants.push(v2);
-    }
-    if(key==='producao'){
-      const v2={...p}; delete v2.anexo; variants.push(v2);
-    }
-    return variants;
+    if(key==='motoristas') { const a={...p,cnhArquivo:p.cnharquivo}; delete a.cnharquivo; v.push(a); }
+    if(key==='manutencoes') { const a={...p}; delete a.anexo; delete a.obs; v.push(a); }
+    if(key==='producao') { const a={...p}; delete a.anexo; v.push(a); }
+    return v;
   }
-
-  async function loadList(key){
-    const db=client(), table=await findTable(key); if(!db||!table) return false;
-    try{
-      const order = key==='producao' ? 'data' : 'id';
-      const {data:rows,error}=await db.from(table).select('*').order(order,{ascending:key!=='producao'});
-      if(error) throw error;
-      if(Array.isArray(rows)) data[key]=rows.map(r=>rowToApp(key,r));
-      return true;
-    }catch(e){ console.warn('Falha ao carregar', key, e); return false; }
-  }
-
   async function saveRemote(key,obj){
     if(key==='multas') return true;
-    const db=client(), table=await findTable(key); if(!db||!table) return false;
-    let lastError=null;
-    for(const payload of payloadVariants(key,obj)){
+    const c=db(), t=await tableFor(key); if(!c||!t) return false;
+    let last=null;
+    for(const p of variants(key,obj)){
       try{
-        const {data:row,error}=await db.from(table).upsert(payload,{onConflict:'id'}).select().single();
+        const {data:row,error}=await c.from(t).upsert(p,{onConflict:'id'}).select().single();
         if(error) throw error;
         if(row) Object.assign(obj,rowToApp(key,row));
         return true;
-      }catch(e){ lastError=e; }
+      }catch(e){ last=e; }
     }
-    throw lastError;
+    throw last;
   }
-
-  async function deleteRemote(key,itemId){
+  async function delRemote(key,itemId){
     if(key==='multas') return true;
-    const db=client(), table=await findTable(key); if(!db||!table) return false;
-    const {error}=await db.from(table).delete().eq('id',Number(itemId));
+    const c=db(), t=await tableFor(key); if(!c||!t) return false;
+    const {error}=await c.from(t).delete().eq('id',Number(itemId));
     if(error) throw error;
     return true;
   }
-
+  async function loadRemote(key){
+    const c=db(), t=await tableFor(key); if(!c||!t) return false;
+    try{
+      const order=key==='producao'?'data':'id';
+      const {data:rows,error}=await c.from(t).select('*').order(order,{ascending:key!=='producao'});
+      if(error) throw error;
+      if(Array.isArray(rows) && rows.length){
+        const local=arr(key).slice();
+        for(const item of rows.map(r=>rowToApp(key,r))){
+          const i=local.findIndex(x=>String(x.id)===String(item.id));
+          if(i>=0) local[i]={...local[i],...item}; else local.push(item);
+        }
+        data[key]=local;
+      }
+      return true;
+    }catch(e){ console.warn('Falha ao carregar '+key,e); return false; }
+  }
   async function saveMonth(key,mes){
     if(!mes) return;
     const tableKey=key==='producao'?'producaoMeses':'manutencoesMeses';
-    const db=client(), table=await findTable(tableKey); if(!db||!table) return;
-    try{ await db.from(table).upsert({mes},{onConflict:'mes'}); }catch(e){ console.warn('Falha ao salvar pasta', mes, e); }
+    const c=db(), t=await tableFor(tableKey); if(!c||!t) return;
+    try{ await c.from(t).upsert({mes},{onConflict:'mes'}); }catch(e){ console.warn('Falha ao salvar pasta',e); }
   }
-
   async function loadMonths(key){
     const tableKey=key==='producao'?'producaoMeses':'manutencoesMeses';
     const target=key==='producao'?'producaoMeses':'manutencoesMeses';
-    const db=client(), table=await findTable(tableKey); if(!db||!table) return;
-    try{
-      const {data:rows,error}=await db.from(table).select('*').order('mes',{ascending:true});
-      if(error) throw error;
-      if(Array.isArray(rows)) data[target]=rows.map(r=>({mes:r.mes}));
-    }catch(e){ console.warn('Falha ao carregar pastas', key, e); }
+    const c=db(), t=await tableFor(tableKey); if(!c||!t) return;
+    try{ const {data:rows,error}=await c.from(t).select('*').order('mes',{ascending:true}); if(error) throw error; if(Array.isArray(rows)&&rows.length) data[target]=rows.map(r=>({mes:r.mes})); }catch(e){}
   }
 
-  window.saveModal = async function(){
+  window.saveModal=async function(){
     const ctx = modalCtx ? {...modalCtx} : null;
-    const beforeIds = ctx && data[ctx.key] ? new Set(data[ctx.key].map(x=>String(x.id))) : new Set();
-    await oldSaveModal.apply(this, arguments);
+    const before = ctx && data[ctx.key] ? new Set(data[ctx.key].map(x=>String(x.id))) : new Set();
+    await oldSaveModal.apply(this,arguments);
     if(!ctx || ctx.key==='multas' || !SYNC_KEYS.includes(ctx.key)) return;
-    const list=currentArray(ctx.key);
-    const obj = ctx.itemId ? list.find(x=>String(x.id)===String(ctx.itemId)) : (list.find(x=>!beforeIds.has(String(x.id))) || list[list.length-1]);
+    const list=arr(ctx.key);
+    const obj=ctx.itemId ? list.find(x=>String(x.id)===String(ctx.itemId)) : (list.find(x=>!before.has(String(x.id))) || list[list.length-1]);
     if(!obj) return;
     try{
       await saveRemote(ctx.key,obj);
       if(ctx.key==='producao' && obj.mes) await saveMonth('producao',obj.mes);
       if(ctx.key==='manutencoes' && typeof ym==='function' && ym(obj.data)) await saveMonth('manutencoes',ym(obj.data));
-      localToast('Salvo no Supabase e disponível em outros PCs.');
-    }catch(e){
-      console.error('Erro Supabase em '+ctx.key, e);
-      alert('Salvou localmente, mas não salvou no Supabase em '+ctx.key+'.\n\nDetalhe: '+(e.message||e));
-    }
+      say('Salvo no Supabase.');
+    }catch(e){ console.error(e); alert('Salvou na tela, mas não salvou no Supabase. Detalhe: '+(e.message||e)); }
   };
   try{ saveModal=window.saveModal; }catch(e){}
 
-  window.removeItem = async function(key,itemId){
-    if(key==='multas') return oldRemoveItem.apply(this, arguments);
+  window.removeItem=async function(key,itemId){
+    if(key==='multas') return oldRemoveItem.apply(this,arguments);
     if(!confirm('Excluir este registro?')) return;
-    try{ await deleteRemote(key,itemId); }catch(e){ console.warn('Erro ao excluir remoto', e); alert('Não consegui excluir no Supabase. Detalhe: '+(e.message||e)); return; }
+    try{ await delRemote(key,itemId); }catch(e){ alert('Não consegui excluir no Supabase. Detalhe: '+(e.message||e)); return; }
     if(data[key]) data[key]=data[key].filter(x=>String(x.id)!==String(itemId));
-    localToast('Excluído do Supabase.');
+    say('Excluído do Supabase.');
     if(typeof showPage==='function') showPage(currentPage);
   };
   try{ removeItem=window.removeItem; }catch(e){}
 
-  window.syncTodasAbasSupabase = async function(){
-    const loaded=[];
-    for(const key of SYNC_KEYS){ if(await loadList(key)) loaded.push(key); }
+  window.syncTodasAbasSupabase=async function(){
+    for(const key of SYNC_KEYS) await loadRemote(key);
     await loadMonths('producao'); await loadMonths('manutencoes');
     if(typeof renderNav==='function') renderNav();
     if(typeof showPage==='function') showPage(currentPage||'dashboard');
-    if(loaded.length) localToast('Dados sincronizados: '+loaded.join(', '));
   };
+  setTimeout(window.syncTodasAbasSupabase,1000);
+  window.addEventListener('focus',()=>{ if(!document.hidden && SYNC_KEYS.includes(currentPage||'')) loadRemote(currentPage).then(()=>showPage(currentPage)); });
 
-  async function refreshWhenVisible(){
-    if(document.hidden) return;
-    if(['multas','dashboard'].includes(currentPage||'')) return;
-    if(SYNC_KEYS.includes(currentPage||'')) await loadList(currentPage).then(()=>{ if(typeof showPage==='function') showPage(currentPage); });
-  }
-  window.addEventListener('focus', refreshWhenVisible);
-  document.addEventListener('visibilitychange', refreshWhenVisible);
-  setTimeout(window.syncTodasAbasSupabase, 900);
-
-  /* Veículos separados por status */
-  window.selectedVehicleStatus = window.selectedVehicleStatus || 'todos';
-  function statusNorm(s){
-    const v=norm(s);
-    if(v.includes('manut')) return 'manutencao';
-    if(v.includes('inat')) return 'inativo';
-    return 'ativo';
-  }
-  function tagStatus(s){
-    const st=statusNorm(s);
-    if(st==='manutencao') return '<span class="tag amber">Em manutenção</span>';
-    if(st==='inativo') return '<span class="tag gray">Inativo</span>';
-    return '<span class="tag green">Ativo</span>';
-  }
-  function vehicleTable(title, rows, empty){
-    return `<div class="table-card"><div class="table-head vehicle-section-title"><h3>${title}</h3><span class="tag blue">${rows.length} veículo(s)</span></div>${rows.length?`<div class="table-scroll"><table><thead><tr><th>Placa</th><th>Modelo</th><th>Linha</th><th>Ano</th><th>Motorista</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows.map(v=>`<tr><td><span class="plate">${esc(v.placa)}</span></td><td>${esc(v.modelo||'-')}</td><td>${esc(v.linha||'-')}</td><td>${esc(v.ano||'-')}</td><td>${esc(v.motorista||'-')}</td><td>${tagStatus(v.status)}</td><td><div class="row-actions"><button class="icon-btn" onclick="openForm('veiculos',${v.id})">✎</button><button class="icon-btn" onclick="removeItem('veiculos',${v.id})">×</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="vehicle-empty">${empty}</div>`}</div>`;
-  }
-  window.setVehicleStatusFilter=function(st){ window.selectedVehicleStatus=st||'todos'; if(typeof renderVeiculosList==='function') renderVeiculosList(); };
+  /* Veículos separados por status, sem mexer no resto do sistema */
+  window.selectedVehicleStatus=window.selectedVehicleStatus||'todos';
+  function st(s){ const v=norm(s); if(v.includes('manut')) return 'manutencao'; if(v.includes('inat')) return 'inativo'; return 'ativo'; }
+  function stTag(s){ const x=st(s); if(x==='manutencao') return '<span class="tag amber">Em manutenção</span>'; if(x==='inativo') return '<span class="tag gray">Inativo</span>'; return '<span class="tag green">Ativo</span>'; }
+  function vTable(title,rows,empty){return `<div class="table-card"><div class="table-head"><h3>${title}</h3><small>${rows.length} veículo(s)</small></div>${rows.length?`<div class="table-scroll"><table><thead><tr><th>Placa</th><th>Modelo</th><th>Linha</th><th>Ano</th><th>Motorista</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows.map(v=>`<tr><td><span class="plate">${esc(v.placa)}</span></td><td>${esc(v.modelo||'-')}</td><td>${esc(v.linha||'-')}</td><td>${esc(v.ano||'-')}</td><td>${esc(v.motorista||'-')}</td><td>${stTag(v.status)}</td><td><div class="row-actions"><button class="icon-btn" onclick="openForm('veiculos',${v.id})">✎</button><button class="icon-btn" onclick="removeItem('veiculos',${v.id})">×</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">${empty}</div>`}</div>`;}
+  window.setVehicleStatusFilter=function(s){ window.selectedVehicleStatus=s||'todos'; renderVeiculosList(); };
   window.renderVeiculosList=function(){
-    const input=document.getElementById('veiSearch');
-    const q=typeof clean==='function'?clean(input?input.value:''):norm(input?input.value:'');
-    const selected=window.selectedVehicleStatus||'todos';
-    document.querySelectorAll('[data-vtab]').forEach(b=>b.classList.toggle('active',b.dataset.vtab===selected));
-    const sel=document.getElementById('veiStatusSelect'); if(sel && sel.value!==selected) sel.value=selected;
+    const input=document.getElementById('veiSearch'); const q=typeof clean==='function'?clean(input?input.value:''):norm(input?input.value:'');
+    const selected=window.selectedVehicleStatus||'todos'; const sel=document.getElementById('veiStatusSelect'); if(sel) sel.value=selected;
     let rows=(data.veiculos||[]).filter(r=>!q||(typeof clean==='function'?clean(Object.values(r).join(' ')):norm(Object.values(r).join(' '))).includes(q));
-    if(selected!=='todos') rows=rows.filter(r=>statusNorm(r.status)===selected);
-    const ativos=rows.filter(r=>statusNorm(r.status)==='ativo');
-    const manut=rows.filter(r=>statusNorm(r.status)==='manutencao');
-    const inativos=rows.filter(r=>statusNorm(r.status)==='inativo');
-    let html='';
-    if(selected==='todos') html=`<div class="vehicle-split-grid">${vehicleTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.')}${vehicleTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.')}${inativos.length?vehicleTable('Veículos inativos',inativos,''):''}</div>`;
-    else if(selected==='ativo') html=vehicleTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.');
-    else if(selected==='manutencao') html=vehicleTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.');
-    else html=vehicleTable('Veículos inativos',inativos,'Nenhum veículo inativo encontrado.');
+    if(selected!=='todos') rows=rows.filter(r=>st(r.status)===selected);
+    const ativos=rows.filter(r=>st(r.status)==='ativo'), manut=rows.filter(r=>st(r.status)==='manutencao'), inativos=rows.filter(r=>st(r.status)==='inativo');
+    const html=selected==='todos'?`<div class="vehicle-split-grid">${vTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.')}${vTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.')}${inativos.length?vTable('Veículos inativos',inativos,''):''}</div>`:selected==='ativo'?vTable('Veículos ativos',ativos,'Nenhum veículo ativo encontrado.'):selected==='manutencao'?vTable('Veículos em manutenção',manut,'Nenhum veículo em manutenção encontrado.'):vTable('Veículos inativos',inativos,'Nenhum veículo inativo encontrado.');
     const target=document.getElementById('veiculosTable'); if(target) target.innerHTML=html;
   };
   window.renderVeiculos=function(){
-    const rows=data.veiculos||[];
-    const ativos=rows.filter(r=>statusNorm(r.status)==='ativo').length;
-    const manut=rows.filter(r=>statusNorm(r.status)==='manutencao').length;
-    const inativos=rows.filter(r=>statusNorm(r.status)==='inativo').length;
-    document.getElementById('veiculos').innerHTML=`<div class="vehicle-status-bar"><div class="vehicle-status-card green"><span>Ativos</span><strong>${ativos}</strong></div><div class="vehicle-status-card amber"><span>Em manutenção</span><strong>${manut}</strong></div><div class="vehicle-status-card gray"><span>Inativos</span><strong>${inativos}</strong></div></div><div class="filters"><div class="filter-row two"><input id="veiSearch" placeholder="Buscar por placa, modelo, linha ou motorista"><select id="veiStatusSelect"><option value="todos">Todos</option><option value="ativo">Ativos</option><option value="manutencao">Em manutenção</option><option value="inativo">Inativos</option></select></div></div><div class="vehicle-tabs"><button class="btn" data-vtab="todos" onclick="setVehicleStatusFilter('todos')">Todos</button><button class="btn" data-vtab="ativo" onclick="setVehicleStatusFilter('ativo')">Ativos</button><button class="btn" data-vtab="manutencao" onclick="setVehicleStatusFilter('manutencao')">Em manutenção</button><button class="btn" data-vtab="inativo" onclick="setVehicleStatusFilter('inativo')">Inativos</button></div><div id="veiculosTable"></div>`;
-    document.getElementById('veiSearch').oninput=renderVeiculosList;
-    document.getElementById('veiStatusSelect').value=window.selectedVehicleStatus||'todos';
-    document.getElementById('veiStatusSelect').onchange=e=>setVehicleStatusFilter(e.target.value);
-    renderVeiculosList();
+    const rows=data.veiculos||[], ativos=rows.filter(r=>st(r.status)==='ativo').length, manut=rows.filter(r=>st(r.status)==='manutencao').length, inativos=rows.filter(r=>st(r.status)==='inativo').length;
+    document.getElementById('veiculos').innerHTML=`<div class="stats"><div class="stat"><span>Ativos</span><strong>${ativos}</strong><em>em operação</em></div><div class="stat"><span>Em manutenção</span><strong>${manut}</strong><em>parados/oficina</em></div><div class="stat"><span>Inativos</span><strong>${inativos}</strong><em>fora de uso</em></div><div class="stat"><span>Total</span><strong>${rows.length}</strong><em>cadastrados</em></div></div><div class="filters"><div class="filter-row two"><input id="veiSearch" placeholder="Buscar por placa, modelo, linha ou motorista"><select id="veiStatusSelect"><option value="todos">Todos</option><option value="ativo">Ativos</option><option value="manutencao">Em manutenção</option><option value="inativo">Inativos</option></select></div></div><div id="veiculosTable"></div>`;
+    document.getElementById('veiSearch').oninput=renderVeiculosList; document.getElementById('veiStatusSelect').onchange=e=>setVehicleStatusFilter(e.target.value); renderVeiculosList();
   };
 })();
 </script>
