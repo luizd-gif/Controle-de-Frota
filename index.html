@@ -2377,74 +2377,73 @@ html[data-theme="dark"] .folder.editable-folder .folder-card-actions .icon-btn{b
 
 
 
-<script id="fix-pastas-e-tacografo-luiz">
+<script id="fix-pastas-sem-sumir-e-acoes">
 (function(){
   function arrSafe(key){ if(!data[key]) data[key]=[]; return data[key]; }
-  function monthProp(key){ return key==='tacografos' ? 'validade' : (key==='producao' ? 'data' : 'data'); }
-  function normalizeMonthList(months){ return [...new Set((months||[]).map(m=>typeof m==='string'?m:(m&&m.mes)).filter(Boolean))].sort(); }
-  function withMonth(dateValue,newMonth){
-    const old=String(dateValue||'');
-    const day=/^\d{4}-\d{2}-\d{2}$/.test(old) ? old.slice(8,10) : '01';
-    const last=new Date(Number(newMonth.slice(0,4)),Number(newMonth.slice(5,7)),0).getDate();
-    return `${newMonth}-${String(Math.min(Number(day||1),last)).padStart(2,'0')}`;
+  function mesProp(key){ return key==='tacografos' ? 'validade' : 'data'; }
+  function listaMeses(months){
+    return [...new Set((months||[]).map(m=>typeof m==='string'?m:(m&&m.mes)).filter(Boolean))].sort();
   }
-  async function saveMonthRows(key,rows){
-    if(typeof salvarRegistroSupabase!=='function') return;
-    for(const r of rows){ await salvarRegistroSupabase(key,r).catch(console.warn); }
+  function manterDia(dataAntiga, novoMes){
+    const antiga=String(dataAntiga||'');
+    const dia=/^\d{4}-\d{2}-\d{2}$/.test(antiga) ? Number(antiga.slice(8,10)) : 1;
+    const ultimo=new Date(Number(novoMes.slice(0,4)), Number(novoMes.slice(5,7)), 0).getDate();
+    return `${novoMes}-${String(Math.min(dia,ultimo)).padStart(2,'0')}`;
   }
-  async function deleteMonthRows(key,rows){
-    if(typeof excluirRegistroSupabase!=='function') return;
-    for(const r of rows){ await excluirRegistroSupabase(key,r.id).catch(console.warn); }
+  async function salvarLinha(key, r){
+    if(typeof window.salvarRegistroSupabase==='function'){
+      try{ await window.salvarRegistroSupabase(key,r); }catch(e){ console.warn(e); }
+    }
+  }
+  async function excluirLinha(key, id){
+    if(typeof window.excluirRegistroSupabase==='function'){
+      try{ await window.excluirRegistroSupabase(key,id); }catch(e){ console.warn(e); }
+    }
   }
 
-  window.editarPastaModulo = async function(key,oldMes){
-    const novo=prompt('Novo mês da pasta (formato AAAA-MM):', oldMes||'');
-    if(!novo) return;
-    if(!/^\d{4}-\d{2}$/.test(novo)){ alert('Use o formato AAAA-MM. Exemplo: 2026-06'); return; }
-    const prop=monthProp(key);
-    const rows=arrSafe(key).filter(r=>ym(r[prop]||r.data)===oldMes);
-    rows.forEach(r=>{ r[prop]=withMonth(r[prop]||r.data,novo); if(key==='producao') r.mes=novo; });
-    folderSel[key]=novo;
-    await saveMonthRows(key,rows);
-    if(typeof showPage==='function') showPage(currentPage);
-    if(typeof toast==='function') toast('Pasta atualizada.');
+  window.editarPastaModulo = async function(key, oldMes){
+    const novoMes = prompt('Novo mês da pasta no formato AAAA-MM:', oldMes || '');
+    if(!novoMes) return;
+    if(!/^\d{4}-\d{2}$/.test(novoMes)){ alert('Use o formato AAAA-MM. Exemplo: 2026-06'); return; }
+    const prop = mesProp(key);
+    const linhas = arrSafe(key).filter(r=>ym(r[prop]||r.data||'')===oldMes);
+    for(const r of linhas){
+      r[prop]=manterDia(r[prop]||r.data, novoMes);
+      if(key==='producao') r.mes=novoMes;
+      await salvarLinha(key,r);
+    }
+    if(key==='producao' && Array.isArray(data.producaoMeses)){
+      data.producaoMeses=data.producaoMeses.map(x=>(typeof x==='string'?x:x.mes)===oldMes?{mes:novoMes}:x);
+    }
+    if(key==='manutencoes' && Array.isArray(data.manutencoesMeses)){
+      data.manutencoesMeses=data.manutencoesMeses.map(x=>(typeof x==='string'?x:x.mes)===oldMes?{mes:novoMes}:x);
+    }
+    folderSel[key]=novoMes;
+    showPage(currentPage);
+    toast('Pasta editada sem apagar as outras.');
   };
 
-  window.excluirPastaModulo = async function(key,mes){
-    if(!confirm(`Excluir a pasta ${monthName(mes)} e todos os registros dela?`)) return;
-    const prop=monthProp(key);
-    const rows=arrSafe(key).filter(r=>ym(r[prop]||r.data)===mes);
-    await deleteMonthRows(key,rows);
-    data[key]=arrSafe(key).filter(r=>ym(r[prop]||r.data)!==mes);
+  window.excluirPastaModulo = async function(key, mes){
+    if(!confirm(`Excluir a pasta ${monthName(mes)}? Isso apaga só os registros desse mês.`)) return;
+    const prop = mesProp(key);
+    const linhas = arrSafe(key).filter(r=>ym(r[prop]||r.data||'')===mes);
+    for(const r of linhas){ await excluirLinha(key,r.id); }
+    data[key]=arrSafe(key).filter(r=>ym(r[prop]||r.data||'')!==mes);
+    if(key==='producao' && Array.isArray(data.producaoMeses)) data.producaoMeses=data.producaoMeses.filter(x=>(typeof x==='string'?x:x.mes)!==mes);
+    if(key==='manutencoes' && Array.isArray(data.manutencoesMeses)) data.manutencoesMeses=data.manutencoesMeses.filter(x=>(typeof x==='string'?x:x.mes)!==mes);
     if(folderSel[key]===mes) folderSel[key]='';
-    if(typeof showPage==='function') showPage(currentPage);
-    if(typeof toast==='function') toast('Pasta excluída.');
+    showPage(currentPage);
+    toast('Pasta excluída. As outras foram preservadas.');
   };
 
-  folderHtmlEmpresa = function(key,months){
-    months = normalizeMonthList(months);
+  window.folderHtmlEmpresa = function(key, months){
     const current=folderSel[key]||'';
-    const cards=[{mes:'',label:'Todos os meses'},...months.map(m=>({mes:m,label:monthName(m)}))];
+    const cards=[{mes:'',label:'Todos os meses'}, ...listaMeses(months).map(m=>({mes:m,label:monthName(m)}))];
     return `<div class="folders">${cards.map(f=>{
-      const actions=f.mes ? `<div class="folder-actions" onclick="event.stopPropagation()"><button class="icon-btn" title="Editar pasta" onclick="editarPastaModulo('${key}','${f.mes}')">✎</button><button class="icon-btn" title="Excluir pasta" onclick="excluirPastaModulo('${key}','${f.mes}')">×</button></div>` : '';
-      return `<button class="folder ${current===f.mes?'active':''}" onclick="selectFolderEmpresa('${key}','${f.mes}')">${actions}<div class="folder-icon">📁</div><strong>${f.label}</strong><small>${folderCountEmpresa(key,f.mes)}</small></button>`;
+      const acoes = f.mes ? `<div class="folder-actions" onclick="event.stopPropagation()"><button type="button" class="icon-btn" title="Editar pasta" onclick="editarPastaModulo('${key}','${f.mes}')">✎</button><button type="button" class="icon-btn" title="Excluir pasta" onclick="excluirPastaModulo('${key}','${f.mes}')">×</button></div>` : '';
+      return `<div class="folder ${current===f.mes?'active':''}" role="button" tabindex="0" onclick="selectFolderEmpresa('${key}','${f.mes}')">${acoes}<div class="folder-icon">📁</div><strong>${f.label}</strong><small>${folderCountEmpresa(key,f.mes)}</small></div>`;
     }).join('')}</div>`;
   };
-
-  const oldSalvarRegistro = window.salvarRegistroSupabase;
-  if(oldSalvarRegistro){
-    window.salvarRegistroSupabase = async function(key,obj){
-      const result = await oldSalvarRegistro.apply(this, arguments);
-      // Mantém os dados locais preservados mesmo quando o Supabase ainda tem só registros novos.
-      const a=arrSafe(key);
-      const idx=a.findIndex(x=>String(x.id)===String(obj.id));
-      if(idx>=0) a[idx]={...a[idx],...obj}; else a.push(obj);
-      return result;
-    };
-  }
-
-  // Re-renderiza com os botões novos sem apagar dados locais.
-  setTimeout(()=>{ try{ if(typeof showPage==='function') showPage(currentPage||'dashboard'); }catch(e){} }, 1800);
 })();
 </script>
 
