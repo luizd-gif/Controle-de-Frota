@@ -2013,5 +2013,174 @@ html[data-theme="dark"] .folder.editable-folder .folder-card-actions .icon-btn{b
 })();
 </script>
 
+<script id="supabase-sync-definitivo-v2">
+/* Sincronização definitiva entre PCs - Luiz / Gestão de Frota */
+(function(){
+  const SYNC_TABLES = {
+    multas:'multas', pontos:'pontos', motoristas:'motoristas', veiculos:'veiculos',
+    tacografos:'tacografos', oleo:'oleo', manutencoes:'manutencoes', producao:'producao',
+    formularios_defeito:'formularios_defeito'
+  };
+  const SYNC_KEYS = Object.keys(SYNC_TABLES);
+  const FIELD_MAP = {
+    cnhArquivo:'cnh_arquivo', cnhUrl:'cnh_url', proxKm:'prox_km',
+    envioRCA:'envio_rca', prazo:'prazo_aceite', prazoAceite:'prazo_aceite',
+    dataSuspeita:'data_suspeita', multaId:'multa_id', multa_id:'multa_id',
+    autoPontoKey:'auto_ponto_key', vinculadaMulta:'vinculada_multa'
+  };
+  const REVERSE_FIELD_MAP = Object.fromEntries(Object.entries(FIELD_MAP).map(([a,b])=>[b,a]));
+  let syncBusy=false, realtimeStarted=false, lastLoadAt=0;
+
+  function db(){ try{return typeof connectSupabase==='function' ? connectSupabase() : null;}catch(e){return null;} }
+  function say(msg){ try{ if(typeof toast==='function') toast(msg); }catch(e){} }
+  function snake(k){ return FIELD_MAP[k] || String(k).replace(/[A-Z]/g,m=>'_'+m.toLowerCase()); }
+  function camel(k){ return REVERSE_FIELD_MAP[k] || String(k).replace(/_([a-z])/g,(_,c)=>c.toUpperCase()); }
+  function normalizeId(v){ const n=Number(v); return Number.isFinite(n)?n:v; }
+
+  function toDb(key,obj){
+    if(!obj || typeof obj!=='object') return obj;
+    if(key==='multas' && typeof multaToDb==='function') return multaToDb(obj);
+    const out={};
+    for(const [k,v] of Object.entries(obj)){
+      if(typeof v==='function') continue;
+      let nk=snake(k);
+      out[nk]=v;
+    }
+    if(out.id!==undefined) out.id=normalizeId(out.id);
+    if(key==='oleo' && obj.proxKm!==undefined) out.prox_km=Number(obj.proxKm||0);
+    if(['valor','km','prox_km','pontos','ano'].some(c=>out[c]!==undefined)){
+      ['valor','km','prox_km','pontos','ano'].forEach(c=>{ if(out[c]!==undefined && out[c]!=='' && out[c]!==null) out[c]=Number(out[c]||0); });
+    }
+    return out;
+  }
+
+  function fromDb(key,row){
+    if(key==='multas' && typeof multaFromDb==='function') return multaFromDb(row);
+    const out={};
+    for(const [k,v] of Object.entries(row||{})){
+      if(['created_at','updated_at'].includes(k)) { out[k]=v; continue; }
+      out[camel(k)]=v;
+    }
+    if(out.id!==undefined) out.id=normalizeId(out.id);
+    if(out.placa) out.placa=String(out.placa).toUpperCase();
+    return out;
+  }
+
+  function getRows(key){ if(!window.data && typeof data==='undefined') return []; return (data[key]||(data[key]=[])); }
+  function setRows(key,rows){ if(Array.isArray(rows)) data[key]=rows; }
+
+  async function upsertOne(key,obj){
+    const client=db(); if(!client || !SYNC_TABLES[key] || !obj) return false;
+    const payload=toDb(key,obj);
+    if(payload.id===undefined || payload.id===null || payload.id==='') payload.id=Date.now()+Math.floor(Math.random()*999);
+    obj.id=payload.id;
+    let res=await client.from(SYNC_TABLES[key]).upsert(payload,{onConflict:'id'}).select().single();
+    if(res.error){
+      console.warn('Erro ao salvar no Supabase:', key, res.error.message);
+      throw res.error;
+    }
+    if(res.data) Object.assign(obj, fromDb(key,res.data));
+    return true;
+  }
+
+  async function deleteOne(key,itemId){
+    const client=db(); if(!client || !SYNC_TABLES[key]) return false;
+    const {error}=await client.from(SYNC_TABLES[key]).delete().eq('id',itemId);
+    if(error){ console.warn('Erro ao excluir no Supabase:', key, error.message); throw error; }
+    return true;
+  }
+
+  async function loadTable(key,{silent=false}={}){
+    const client=db(); if(!client || !SYNC_TABLES[key]) return;
+    const {data:rows,error}=await client.from(SYNC_TABLES[key]).select('*').order('id',{ascending:false});
+    if(error){ console.warn('Tabela não carregada:', key, error.message); return; }
+    if(Array.isArray(rows)){
+      const mapped=rows.map(r=>fromDb(key,r));
+      const isCadastro=['motoristas','veiculos','tacografos','oleo'].includes(key);
+      if(mapped.length || !isCadastro) setRows(key,mapped);
+    }
+  }
+
+  window.syncSupabaseNow = async function({silent=false}={}){
+    if(syncBusy) return;
+    syncBusy=true;
+    try{
+      await Promise.all(SYNC_KEYS.map(k=>loadTable(k,{silent:true})));
+      if(typeof renderNav==='function') renderNav();
+      if(typeof showPage==='function' && typeof currentPage!=='undefined') showPage(currentPage);
+      lastLoadAt=Date.now();
+      if(!silent) say('Dados sincronizados com o Supabase.');
+    }catch(e){ console.error(e); if(!silent) say('Falha ao sincronizar Supabase.'); }
+    finally{ syncBusy=false; }
+  };
+
+  window.uploadLocalToSupabase = async function(){
+    const client=db(); if(!client) return say('Supabase não conectado.');
+    let total=0;
+    for(const key of SYNC_KEYS){
+      for(const item of getRows(key)){
+        try{ await upsertOne(key,item); total++; }catch(e){ console.warn('Falha no envio local:',key,item,e.message); }
+      }
+    }
+    say(`${total} registros enviados/atualizados no Supabase.`);
+    await window.syncSupabaseNow({silent:true});
+  };
+
+  const oldSave = window.saveModal || (typeof saveModal!=='undefined'?saveModal:null);
+  if(typeof oldSave==='function'){
+    window.saveModal = saveModal = async function(){
+      const ctx = (typeof modalCtx!=='undefined' && modalCtx) ? {...modalCtx} : null;
+      const beforeIds = ctx && data[ctx.key] ? new Set(data[ctx.key].map(x=>String(x.id))) : new Set();
+      await oldSave.apply(this, arguments);
+      if(!ctx || !SYNC_TABLES[ctx.key]) return;
+      let item = ctx.itemId ? (data[ctx.key]||[]).find(x=>String(x.id)===String(ctx.itemId)) : null;
+      if(!item) item=(data[ctx.key]||[]).find(x=>!beforeIds.has(String(x.id)));
+      if(item){
+        try{ await upsertOne(ctx.key,item); say('Salvo no Supabase e liberado para outros PCs.'); }
+        catch(e){ alert('Foi salvo localmente, mas não conseguiu salvar no Supabase: '+(e.message||e)); }
+      }
+      if(typeof renderNav==='function') renderNav();
+      if(typeof showPage==='function' && typeof currentPage!=='undefined') showPage(currentPage);
+    };
+  }
+
+  const oldRemove = window.removeItem || (typeof removeItem!=='undefined'?removeItem:null);
+  if(typeof oldRemove==='function'){
+    window.removeItem = removeItem = async function(key,itemId){
+      const exists = SYNC_TABLES[key];
+      await oldRemove.apply(this, arguments);
+      if(exists){
+        try{ await deleteOne(key,itemId); say('Excluído do Supabase e atualizado para outros PCs.'); }
+        catch(e){ alert('Excluiu da tela, mas não conseguiu excluir do Supabase: '+(e.message||e)); }
+      }
+    };
+  }
+
+  function startRealtime(){
+    const client=db(); if(!client || realtimeStarted) return;
+    realtimeStarted=true;
+    try{
+      const channel=client.channel('gestao-frota-sync-v2');
+      for(const [key,table] of Object.entries(SYNC_TABLES)){
+        channel.on('postgres_changes',{event:'*',schema:'public',table},async()=>{
+          await loadTable(key,{silent:true});
+          if(typeof renderNav==='function') renderNav();
+          if(typeof showPage==='function' && typeof currentPage!=='undefined') showPage(currentPage);
+        });
+      }
+      channel.subscribe();
+    }catch(e){ console.warn('Realtime não iniciado:',e); }
+  }
+
+  window.addEventListener('focus',()=>{
+    if(Date.now()-lastLoadAt>3000) window.syncSupabaseNow({silent:true});
+  });
+  setInterval(()=>window.syncSupabaseNow({silent:true}),12000);
+
+  const boot=()=>{ startRealtime(); window.syncSupabaseNow({silent:true}); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,400);
+})();
+</script>
+
 </body>
 </html>
