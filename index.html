@@ -323,8 +323,47 @@ html[data-theme="dark"] .prod-folder-tools .icon-btn.danger:hover{
 }
 </style>
 
+
+<style id="login-perfis-luiz-css">
+/* Login e perfis de acesso - Gestão/Admin x Mecânico/Somente leitura */
+body.auth-locked .app,
+body.auth-locked #modalBg,
+body.auth-locked #toast{display:none!important;}
+.login-screen{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 20% 15%,rgba(59,130,246,.30),transparent 34%),radial-gradient(circle at 85% 80%,rgba(124,58,237,.24),transparent 36%),linear-gradient(135deg,#08111f,#0f172a 48%,#111827);}
+body.auth-locked .login-screen{display:flex;}
+.login-card{width:min(420px,100%);background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.30);border-radius:28px;box-shadow:0 30px 90px rgba(0,0,0,.34);padding:30px;}
+.login-brand-row{display:flex;align-items:center;gap:13px;margin-bottom:20px;}
+.login-logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#1f6feb,#7c3aed);display:grid;place-items:center;color:#fff;font-size:21px;font-weight:900;box-shadow:0 16px 35px rgba(31,111,235,.25);}
+.login-card h1{margin:0;font-size:24px;letter-spacing:-.045em;color:#172033}.login-card p{margin:4px 0 0;color:#64748b;font-size:13px;line-height:1.35}.login-field{display:grid;gap:7px;margin-bottom:13px}.login-field label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;color:#64748b}.login-input-wrap{position:relative}.login-input-wrap input{width:100%;border:1px solid #dbe3ef;border-radius:15px;padding:14px 44px 14px 14px;font-weight:750;outline:none;background:#fff;color:#172033;transition:.16s ease}.login-input-wrap input:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(31,111,235,.10)}.login-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:16px;pointer-events:none}.login-submit{width:100%;border:0;border-radius:15px;padding:14px;background:linear-gradient(135deg,#1f6feb,#2563eb);color:#fff;font-weight:900;margin-top:8px;box-shadow:0 14px 28px rgba(31,111,235,.22)}.login-submit:hover{filter:brightness(.97);transform:translateY(-1px)}.login-error{min-height:20px;margin-top:11px;color:#dc2626;font-size:13px;font-weight:800;text-align:center}.login-footer{margin-top:14px;text-align:center;color:#94a3b8;font-size:11px;font-weight:700}.user-panel{margin:12px 0 14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#f8fafc;display:grid;gap:8px}.user-panel b{font-size:12px}.user-panel small{color:var(--muted);font-weight:700}.user-panel .btn{width:100%;box-shadow:none;padding:8px 10px}.role-badge{display:inline-flex;width:max-content;border-radius:999px;padding:4px 8px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.readonly-banner{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:14px;padding:10px 12px;margin:0 0 14px;font-weight:800;font-size:13px;display:none}.role-mecanico .readonly-banner{display:block}.role-mecanico .admin-only,.role-mecanico .row-actions,.role-mecanico #pageActions{display:none!important}.role-mecanico .icon-btn[onclick*="openForm"],.role-mecanico .icon-btn[onclick*="removeItem"],.role-mecanico button[onclick*="openAdd"],.role-mecanico button[onclick*="remove"],.role-mecanico button[onclick*="delete"],.role-mecanico button[onclick*="saveModal"]{display:none!important;}
+html[data-theme="dark"] .user-panel{background:#111827!important;border-color:#334155!important}html[data-theme="dark"] .login-card{background:rgba(15,23,42,.94);color:#e5e7eb;border-color:#334155}html[data-theme="dark"] .login-card h1{color:#e5e7eb}html[data-theme="dark"] .login-card p{color:#94a3b8}html[data-theme="dark"] .login-input-wrap input{background:#111827;border-color:#334155;color:#e5e7eb}html[data-theme="dark"] .login-footer{color:#64748b}
+</style>
+
 </head>
-<body>
+<body class="auth-locked">
+
+<div class="login-screen" id="loginScreen">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <div class="login-brand-row">
+      <div class="login-logo">GF</div>
+      <div>
+        <h1>Gestão de Frota</h1>
+        <p>Acesse sua área de trabalho</p>
+      </div>
+    </div>
+    <div class="login-field">
+      <label>Usuário</label>
+      <div class="login-input-wrap"><input id="loginUser" placeholder="Digite seu usuário" required /><span class="login-icon">👤</span></div>
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <div class="login-input-wrap"><input id="loginPass" type="password" placeholder="Digite sua senha" required /><span class="login-icon">🔒</span></div>
+    </div>
+    <button class="login-submit" type="submit">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-footer">Sistema de Gestão de Frota v1.0</div>
+  </form>
+</div>
+
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><div class="logo">GF</div><div><h1>Gestão de Frota</h1><small>Controle operacional</small></div></div>
@@ -3573,7 +3612,14 @@ html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!impo
   function E(v){ try{ return typeof esc==='function'?esc(v):T(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }catch(e){ return T(v); } }
   function F(v){ try{ return typeof fmtDate==='function'?fmtDate(v):(D(v)?v.split('-').reverse().join('/'):'-'); }catch(e){ return D(v)?v.split('-').reverse().join('/'):'-'; } }
   function MNY(v){ try{ return typeof BRL==='function'?BRL(v):('R$ '+N(v).toFixed(2)); }catch(e){ return 'R$ '+N(v).toFixed(2); } }
-  function TAG(s){ try{ return typeof statusTag==='function'?statusTag(s):`<span class="tag gray">${E(s||'-')}</span>`; }catch(e){ return `<span class="tag gray">${E(s||'-')}</span>`; } }
+  function TAG(s){
+    const raw=T(s).toLowerCase();
+    const st=(['aguardando_aceite','aguardando assinatura','aguardando_assinatura','aceito','aceita','enviado_rca','enviado_para_rca'].includes(raw))?'pendente':(raw||'concluido');
+    if(st==='concluido' || st==='concluida' || st==='ok') return `<span class="tag green">Concluído</span>`;
+    if(st==='pendente') return `<span class="tag amber">Pendente</span>`;
+    if(st==='em_andamento' || st==='andamento' || st==='manutencao') return `<span class="tag blue">Em andamento</span>`;
+    return `<span class="tag gray">${E(st.replaceAll('_',' '))}</span>`;
+  }
   function CLEAN(s){ try{ return typeof clean==='function'?clean(s):T(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }catch(e){ return T(s).toLowerCase(); } }
   function newId(){ try{ return typeof id==='function'?id():Date.now()+Math.floor(Math.random()*999); }catch(e){ return Date.now()+Math.floor(Math.random()*999); } }
   function db(){ try{ return typeof connectSupabase==='function'?connectSupabase():null; }catch(e){ return null; } }
@@ -3629,7 +3675,10 @@ html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!impo
     o.validadePeca=D(o.validadePeca || o.validade_peca || o.validade_peca_manutencao || o.validade || parsed.validadePeca);
     o.descricao=T(parsed.descricao || o.descricao || o.obs || o.observacao || '');
     o.valor=N(o.valor);
-    o.status=T(o.status || 'concluido');
+    {
+      const st=T(o.status || 'concluido').toLowerCase();
+      o.status=(['aguardando_aceite','aguardando assinatura','aguardando_assinatura','aceito','aceita','enviado_rca','enviado_para_rca'].includes(st))?'pendente':(st||'concluido');
+    }
     o.anexo=T(o.anexo || '');
     o.servico=T(o.servico || o.tipo || 'Serviço de manutenção');
     return o;
@@ -3886,6 +3935,108 @@ html[data-theme="dark"] .vehicle-status-tabs .btn.active{background:#2563eb!impo
   #manTable table{min-width:1350px!important;width:1350px!important;}
 }
 </style>
+
+
+<script id="fix-final-status-manutencoes-luiz">
+(function(){
+  function corrigirStatusManutencoes(){
+    if(!window.data || !Array.isArray(data.manutencoes)) return;
+    data.manutencoes.forEach(r=>{
+      const st=String(r.status||'').toLowerCase().trim();
+      if(['aguardando_aceite','aguardando assinatura','aguardando_assinatura','aceito','aceita','enviado_rca','enviado_para_rca'].includes(st)) r.status='pendente';
+      if(!st) r.status='concluido';
+    });
+  }
+  corrigirStatusManutencoes();
+  const oldShowPage=window.showPage;
+  if(typeof oldShowPage==='function'){
+    window.showPage=function(p){ corrigirStatusManutencoes(); return oldShowPage.apply(this,arguments); };
+    try{ showPage=window.showPage; }catch(e){}
+  }
+})();
+</script>
+
+<script id="login-perfis-luiz-js">
+(function(){
+  const AUTH_USERS={
+    admin:{senha:'1234',nome:'Gestão de Frota',perfil:'admin',label:'Administrador'},
+    gestao:{senha:'1234',nome:'Gestão de Frota',perfil:'admin',label:'Administrador'},
+    mecanico:{senha:'1234',nome:'Mecânico',perfil:'mecanico',label:'Somente leitura'}
+  };
+  const EDIT_PATTERNS=['openForm','removeItem','openAddMonth','saveModal','salvar','excluir','deletar','delete','editar','criar','novo','nova','toggleProdFolder','deleteProdFolder','editProdFolder','removeProdFolder'];
+  function getSession(){try{return JSON.parse(sessionStorage.getItem('gf_user')||'null')}catch(e){return null}}
+  function setSession(u){sessionStorage.setItem('gf_user',JSON.stringify(u));}
+  function clearSession(){sessionStorage.removeItem('gf_user');}
+  function isAdmin(){const u=getSession();return !!u && u.perfil==='admin';}
+  function toastSafe(msg){try{ if(typeof toast==='function') toast(msg); else alert(msg); }catch(e){alert(msg)}}
+  window.isAdminUser=isAdmin;
+  window.requireAdmin=function(){ if(isAdmin()) return true; toastSafe('Acesso somente leitura: o usuário mecânico não pode editar.'); return false; };
+  window.logoutGF=function(){ clearSession(); location.reload(); };
+  function blockByOnclick(el){
+    const btn=el.closest?.('button,a'); if(!btn) return false;
+    const oc=String(btn.getAttribute('onclick')||'').toLowerCase();
+    const txt=String(btn.textContent||'').toLowerCase();
+    return EDIT_PATTERNS.some(p=>oc.includes(p.toLowerCase())) || /(^|\s)(\+|novo|nova|editar|excluir|salvar|apagar)(\s|$)/i.test(txt);
+  }
+  document.addEventListener('click',function(ev){
+    if(isAdmin()) return;
+    if(blockByOnclick(ev.target)){
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+      toastSafe('Modo mecânico: visualização liberada, edição bloqueada.');
+    }
+  },true);
+  function addUserPanel(){
+    const brand=document.querySelector('.sidebar .brand'); if(!brand || document.getElementById('userPanel')) return;
+    const u=getSession(); if(!u) return;
+    const div=document.createElement('div'); div.id='userPanel'; div.className='user-panel';
+    div.innerHTML=`<span class="role-badge">${u.label}</span><b>${u.nome}</b><small>${u.perfil==='admin'?'Pode adicionar, editar e excluir registros.':'Pode observar todos os dados sem editar.'}</small><button class="btn" onclick="logoutGF()">Sair</button>`;
+    brand.insertAdjacentElement('afterend',div);
+  }
+  function addReadonlyBanner(){
+    if(isAdmin() || document.getElementById('readonlyBanner')) return;
+    const top=document.querySelector('.content .topbar'); if(!top) return;
+    const b=document.createElement('div'); b.id='readonlyBanner'; b.className='readonly-banner'; b.textContent='Modo mecânico: acesso somente para visualização. Botões de edição estão bloqueados.';
+    top.insertAdjacentElement('afterend',b);
+  }
+  function markEditingButtons(){
+    if(isAdmin()) return;
+    document.querySelectorAll('button,a').forEach(btn=>{ if(blockByOnclick(btn)) btn.classList.add('admin-only'); });
+    const actions=document.getElementById('pageActions'); if(actions) actions.classList.add('admin-only');
+  }
+  function applyAuthUI(){
+    const u=getSession();
+    document.body.classList.toggle('auth-locked',!u);
+    document.body.classList.toggle('role-admin',!!u && u.perfil==='admin');
+    document.body.classList.toggle('role-mecanico',!!u && u.perfil==='mecanico');
+    if(u){ addUserPanel(); addReadonlyBanner(); markEditingButtons(); }
+  }
+  const form=document.getElementById('loginForm');
+  if(form){
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      const user=(document.getElementById('loginUser')?.value||'').trim().toLowerCase();
+      const pass=document.getElementById('loginPass')?.value||'';
+      const found=AUTH_USERS[user];
+      if(!found || found.senha!==pass){ const er=document.getElementById('loginError'); if(er) er.textContent='Usuário ou senha incorretos.'; return; }
+      setSession({usuario:user,nome:found.nome,perfil:found.perfil,label:found.label});
+      applyAuthUI();
+      try{ if(typeof showPage==='function') showPage(window.currentPage||'dashboard'); }catch(err){}
+    });
+  }
+  const tryWrap=()=>{
+    ['openForm','openAddMonth','removeItem','saveModal','salvarMultaSupabase','removerMultaSupabase'].forEach(name=>{
+      const fn=window[name] || (typeof globalThis[name]==='function'?globalThis[name]:null);
+      if(typeof fn==='function' && !fn.__authWrapped){
+        const wrapped=function(){ if(!isAdmin()){ toastSafe('Acesso somente leitura: edição bloqueada.'); return false; } return fn.apply(this,arguments); };
+        wrapped.__authWrapped=true; window[name]=wrapped; try{ eval(name+'=window[name]'); }catch(e){}
+      }
+    });
+  };
+  applyAuthUI();
+  setTimeout(tryWrap,0);
+  setInterval(()=>{applyAuthUI();tryWrap();},700);
+})();
+</script>
 
 </body>
 </html>
