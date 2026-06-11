@@ -9272,5 +9272,419 @@ html[data-theme="dark"] .brat-simple-hero,html[data-theme="dark"] .brat-simple-d
 })();
 </script>
 
+
+
+<!-- Ajuste Luiz v2: tabelas sem rolagem horizontal + detalhes seguros para campos longos. -->
+<style id="luiz-sem-rolagem-v2-css">
+/* Mantém os dados aparecendo e evita scroll horizontal nas áreas com textos grandes */
+#manTable .table-scroll,
+#prodInfo .table-scroll{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:hidden!important;
+}
+#manTable table,
+#prodInfo table{
+  width:100%!important;
+  min-width:0!important;
+  table-layout:fixed!important;
+}
+#manTable th,
+#manTable td,
+#prodInfo th,
+#prodInfo td{
+  overflow:hidden!important;
+  vertical-align:top!important;
+}
+#manTable th:nth-child(1),#manTable td:nth-child(1){width:92px!important;}
+#manTable th:nth-child(2),#manTable td:nth-child(2){width:104px!important;}
+#manTable th:nth-child(3),#manTable td:nth-child(3){width:14%!important;}
+#manTable th:nth-child(4),#manTable td:nth-child(4){width:12%!important;}
+#manTable th:nth-child(5),#manTable td:nth-child(5){width:auto!important;}
+#manTable th:nth-child(6),#manTable td:nth-child(6){width:110px!important;}
+#manTable th:nth-child(7),#manTable td:nth-child(7){width:108px!important;}
+#manTable th:nth-child(8),#manTable td:nth-child(8){width:152px!important;}
+#prodInfo th:nth-child(1),#prodInfo td:nth-child(1){width:92px!important;}
+#prodInfo th:nth-child(2),#prodInfo td:nth-child(2){width:120px!important;}
+#prodInfo th:nth-child(3),#prodInfo td:nth-child(3){width:104px!important;}
+#prodInfo th:nth-child(4),#prodInfo td:nth-child(4){width:auto!important;}
+#prodInfo th:nth-child(5),#prodInfo td:nth-child(5){width:128px!important;}
+#prodInfo th:nth-child(6),#prodInfo td:nth-child(6){width:185px!important;}
+#prodInfo th:nth-child(7),#prodInfo td:nth-child(7){width:152px!important;}
+.long-cell-luiz{
+  display:-webkit-box!important;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:normal!important;
+  word-break:normal!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.35!important;
+  max-height:38px!important;
+  color:var(--text)!important;
+}
+.mini-muted-luiz{
+  color:var(--muted)!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  margin-top:4px!important;
+}
+.detail-btn-luiz{
+  height:33px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:#1d4ed8;
+  font-size:12px;
+  font-weight:900;
+  padding:0 10px;
+  white-space:nowrap;
+}
+.detail-btn-luiz:hover{background:#eff6ff;border-color:#93c5fd;}
+.row-actions.compact-actions-luiz{gap:5px;flex-wrap:nowrap;align-items:center;justify-content:flex-end;}
+.detail-drawer-bg-luiz{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.42);
+  display:none;
+  justify-content:flex-end;
+  z-index:120;
+}
+.detail-drawer-bg-luiz.open{display:flex;}
+.detail-drawer-luiz{
+  width:min(540px,100%);
+  height:100vh;
+  background:var(--panel);
+  color:var(--text);
+  border-left:1px solid var(--line);
+  box-shadow:-28px 0 80px rgba(15,23,42,.25);
+  display:flex;
+  flex-direction:column;
+  animation:drawerInLuiz .16s ease-out;
+}
+@keyframes drawerInLuiz{from{transform:translateX(18px);opacity:.75}to{transform:translateX(0);opacity:1}}
+.detail-drawer-head-luiz{
+  padding:18px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.detail-drawer-head-luiz h3{margin:0;font-size:18px;letter-spacing:-.02em;}
+.detail-drawer-head-luiz small{display:block;color:var(--muted);font-weight:700;margin-top:3px;}
+.detail-drawer-body-luiz{padding:18px 20px;overflow:auto;display:grid;gap:12px;}
+.detail-info-grid-luiz{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.detail-info-luiz{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:14px;
+  padding:11px;
+  min-width:0;
+}
+.detail-info-luiz span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  font-weight:900;
+  margin-bottom:5px;
+}
+.detail-info-luiz div{font-size:13px;line-height:1.35;overflow-wrap:anywhere;}
+.detail-full-luiz{grid-column:1/-1;}
+.detail-text-luiz{white-space:pre-wrap;line-height:1.45!important;font-size:14px!important;}
+.detail-drawer-foot-luiz{
+  border-top:1px solid var(--line);
+  padding:14px 20px;
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  background:var(--panel2);
+}
+html[data-theme="dark"] .detail-btn-luiz{background:#0f172a!important;color:#bfdbfe!important;border-color:#334155!important;}
+html[data-theme="dark"] .detail-btn-luiz:hover{background:#172554!important;border-color:#3b82f6!important;}
+html[data-theme="dark"] .detail-drawer-luiz{background:var(--panel)!important;border-color:var(--line)!important;}
+html[data-theme="dark"] .detail-info-luiz{background:#0f172a!important;border-color:#334155!important;}
+@media(max-width:820px){
+  #manTable .table-scroll,#prodInfo .table-scroll{overflow:visible!important;}
+  #manTable table,#prodInfo table,#manTable thead,#prodInfo thead,#manTable tbody,#prodInfo tbody,#manTable tr,#prodInfo tr,#manTable td,#prodInfo td{display:block;width:100%!important;}
+  #manTable thead,#prodInfo thead{display:none!important;}
+  #manTable tr,#prodInfo tr{border-bottom:1px solid var(--line);padding:12px 14px;}
+  #manTable td,#prodInfo td{border-bottom:0!important;padding:5px 0!important;}
+  #manTable td::before,#prodInfo td::before{content:attr(data-label);display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;margin-bottom:3px;}
+  .row-actions.compact-actions-luiz{justify-content:flex-start;flex-wrap:wrap;}
+  .detail-info-grid-luiz{grid-template-columns:1fr;}
+}
+</style>
+<script id="luiz-sem-rolagem-v2-js">
+(function(){
+  'use strict';
+  function arr(key){ return (window.data && Array.isArray(window.data[key])) ? window.data[key] : []; }
+  function safeEsc(v){ return (typeof esc === 'function') ? esc(v) : String(v ?? '').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function safeDate(v){ return (typeof fmtDate === 'function') ? fmtDate(v) : (v || '-'); }
+  function safeMonth(v){ return (typeof monthName === 'function') ? monthName(v) : (v || 'Todos os meses'); }
+  function safeBRL(v){ return (typeof BRL === 'function') ? BRL(v) : ('R$ ' + Number(v || 0).toFixed(2)); }
+  function monthOf(d){ return (typeof ym === 'function') ? ym(d) : (/^\d{4}-\d{2}-\d{2}$/.test(d||'') ? String(d).slice(0,7) : ''); }
+  function norm(v){ return (typeof clean === 'function') ? clean(v) : String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+  function statusHtml(v){ return (typeof statusTag === 'function') ? statusTag(v) : `<span class="tag gray">${safeEsc(v || '-')}</span>`; }
+  function statusText(v){ return (typeof statusNice === 'function') ? statusNice(v) : (v || '-'); }
+  function makeTable(title, headers, rows){
+    if(typeof table === 'function') return table(title, headers, rows);
+    return `<div class="table-card"><div class="table-head"><h3>${safeEsc(title)}</h3><small>${rows ? 'Registros' : 'Sem registros'}</small></div><div class="table-scroll"><table><thead><tr>${headers.map(h=>`<th>${safeEsc(h)}</th>`).join('')}</tr></thead><tbody>${rows || ''}</tbody></table></div></div>`;
+  }
+  function manSelected(){
+    try{ if(window.folderSel && typeof window.folderSel.manutencoes !== 'undefined') return window.folderSel.manutencoes || ''; }catch(e){}
+    try{ if(typeof folderSel !== 'undefined' && folderSel && typeof folderSel.manutencoes !== 'undefined') return folderSel.manutencoes || ''; }catch(e){}
+    try{ return selectedManMonth || ''; }catch(e){ return ''; }
+  }
+  function setManSelected(m){
+    try{ if(window.folderSel) window.folderSel.manutencoes = m || ''; }catch(e){}
+    try{ if(typeof folderSel !== 'undefined' && folderSel) folderSel.manutencoes = m || ''; }catch(e){}
+    try{ selectedManMonth = m || ''; }catch(e){}
+  }
+  function prodSelected(){
+    try{ if(window.folderSel && typeof window.folderSel.producao !== 'undefined') return window.folderSel.producao || ''; }catch(e){}
+    try{ if(typeof folderSel !== 'undefined' && folderSel && typeof folderSel.producao !== 'undefined') return folderSel.producao || ''; }catch(e){}
+    try{ return selectedProdMonth || ''; }catch(e){ return ''; }
+  }
+  function setProdSelected(m){
+    try{ if(window.folderSel) window.folderSel.producao = m || ''; }catch(e){}
+    try{ if(typeof folderSel !== 'undefined' && folderSel) folderSel.producao = m || ''; }catch(e){}
+    try{ selectedProdMonth = m || ''; }catch(e){}
+  }
+  function manRows(m){ return arr('manutencoes').filter(function(r){ return !m || monthOf(r.data) === m; }); }
+  function manTotal(rows){ return rows.reduce(function(s,r){ return s + Number(r.valor || 0); }, 0); }
+  function manFoldersHtml(){
+    const meses = Array.from(new Set(arr('manutencoes').map(function(r){ return monthOf(r.data); }).filter(Boolean))).sort();
+    const selected = manSelected();
+    return `<div class="folders">${[''].concat(meses).map(function(m){
+      const rows = manRows(m);
+      const total = manTotal(rows);
+      const unique = new Set(rows.map(function(r){ return r.placa; }).filter(Boolean)).size;
+      return `<button class="folder ${selected===m?'active':''}" onclick="selectManMonthLuiz('${safeEsc(m)}')"><div class="folder-icon">📁</div><strong>${m?safeMonth(m):'Todos os meses'}<span class="folder-count">${rows.length}</span></strong><small>${rows.length} registros • ${unique} veículos</small><small class="warn">Total: ${safeBRL(total)}</small></button>`;
+    }).join('')}</div>`;
+  }
+  window.selectManMonthLuiz = function(m){
+    setManSelected(m || '');
+    if(typeof window.render_manutencoes === 'function') window.render_manutencoes();
+    setTimeout(function(){ document.getElementById('manTable')?.scrollIntoView({behavior:'smooth',block:'start'}); }, 40);
+  };
+  window.render_manutencoes = function(){
+    try{
+      if(typeof setActions === 'function') setActions('<button class="btn" onclick="openAddManMonth && openAddManMonth()">+ Pasta/mês</button><button class="btn primary" onclick="openForm(\'manutencoes\')">+ Nova manutenção</button>');
+      const selected = manSelected();
+      const rows = manRows(selected);
+      const total = manTotal(rows);
+      const ticket = rows.length ? total / rows.length : 0;
+      const unique = new Set(rows.map(function(r){ return r.placa; }).filter(Boolean)).size;
+      const box = document.getElementById('manutencoes');
+      if(!box) return;
+      const topStats = (typeof stats === 'function') ? stats([
+        ['Registros', rows.length, selected ? 'serviços no mês' : 'serviços no total'],
+        ['Valor', safeBRL(total), selected ? 'total do mês' : 'total geral'],
+        ['Ticket médio', safeBRL(ticket), 'valor médio por serviço'],
+        ['Selecionado', selected ? safeMonth(selected) : 'Todos', unique + ' veículos']
+      ]) : '';
+      const filtro = (typeof filterHtml === 'function') ? filterHtml('manSearch','Buscar placa, tipo, origem ou descrição...') : '<div class="filters"><input id="manSearch" placeholder="Buscar placa, tipo, origem ou descrição..."></div>';
+      box.innerHTML = topStats + manFoldersHtml() + filtro + '<div id="manTable"></div>';
+      const input = document.getElementById('manSearch');
+      if(input) input.oninput = window.renderManList;
+      window.renderManList();
+    }catch(e){
+      console.error('Erro ao renderizar Manutenções:', e);
+      const box = document.getElementById('manutencoes');
+      if(box) box.innerHTML = '<div class="empty">Não foi possível carregar as manutenções. Recarregue a página ou volte para o backup anterior.</div>';
+    }
+  };
+  window.renderManList = function(){
+    const q = norm(document.getElementById('manSearch')?.value || '');
+    const selected = manSelected();
+    const rows = arr('manutencoes').filter(function(r){
+      return (!selected || monthOf(r.data) === selected) && (!q || norm(Object.values(r).join(' ')).includes(q));
+    });
+    const htmlRows = rows.map(function(r){
+      return `<tr>
+        <td data-label="Data">${safeDate(r.data)}</td>
+        <td data-label="Placa"><span class="plate">${safeEsc(r.placa || '-')}</span></td>
+        <td data-label="Tipo/peça"><div class="long-cell-luiz">${safeEsc(r.tipo || '-')}</div></td>
+        <td data-label="Origem"><div class="long-cell-luiz">${safeEsc(r.origem || '-')}</div></td>
+        <td data-label="Descrição"><div class="long-cell-luiz">${safeEsc(r.descricao || '-')}</div><div class="mini-muted-luiz">Abra detalhes para ver o texto completo</div></td>
+        <td data-label="Valor"><b>${safeBRL(r.valor)}</b></td>
+        <td data-label="Status">${statusHtml(r.status)}</td>
+        <td data-label="Ações" class="row-actions compact-actions-luiz"><button class="detail-btn-luiz" onclick="openRegistroDetalhesLuiz('manutencoes',${Number(r.id) || 0})">Detalhes</button><button class="icon-btn" onclick="openForm('manutencoes',${Number(r.id) || 0})">✎</button><button class="icon-btn" onclick="removeItem('manutencoes',${Number(r.id) || 0})">×</button></td>
+      </tr>`;
+    }).join('');
+    const target = document.getElementById('manTable');
+    if(target) target.innerHTML = makeTable(selected ? `Manutenções — ${safeMonth(selected)}` : 'Manutenções — Todos os meses', ['Data','Placa','Tipo/peça','Origem','Descrição','Valor','Status','Ações'], htmlRows);
+  };
+  try{ render_manutencoes = window.render_manutencoes; renderManList = window.renderManList; }catch(e){}
+
+  function ensureDrawer(){
+    let bg = document.getElementById('detailDrawerLuiz');
+    if(bg) return bg;
+    bg = document.createElement('div');
+    bg.id = 'detailDrawerLuiz';
+    bg.className = 'detail-drawer-bg-luiz';
+    bg.innerHTML = `<aside class="detail-drawer-luiz" onclick="event.stopPropagation()">
+      <div class="detail-drawer-head-luiz"><div><h3 id="detailDrawerTitleLuiz">Detalhes</h3><small id="detailDrawerSubLuiz"></small></div><button class="icon-btn" onclick="closeRegistroDetalhesLuiz()">×</button></div>
+      <div class="detail-drawer-body-luiz" id="detailDrawerBodyLuiz"></div>
+      <div class="detail-drawer-foot-luiz"><button class="btn" onclick="closeRegistroDetalhesLuiz()">Fechar</button><button class="btn primary" id="detailDrawerEditLuiz">Editar</button></div>
+    </aside>`;
+    bg.onclick = window.closeRegistroDetalhesLuiz;
+    document.body.appendChild(bg);
+    return bg;
+  }
+  function detailBox(label, value, full){
+    return `<div class="detail-info-luiz ${full?'detail-full-luiz':''}"><span>${safeEsc(label)}</span><div class="${full?'detail-text-luiz':''}">${safeEsc(value || '-')}</div></div>`;
+  }
+  window.openRegistroDetalhesLuiz = function(key, itemId){
+    const r = arr(key).find(function(x){ return String(x.id) === String(itemId); });
+    if(!r){ if(typeof toast === 'function') toast('Registro não encontrado.'); return; }
+    const bg = ensureDrawer();
+    const title = key === 'manutencoes' ? 'Detalhes da manutenção' : 'Detalhes da produção';
+    document.getElementById('detailDrawerTitleLuiz').textContent = title;
+    document.getElementById('detailDrawerSubLuiz').textContent = (r.placa ? 'Placa ' + r.placa + ' • ' : '') + (r.data ? safeDate(r.data) : 'Sem data');
+    if(key === 'manutencoes'){
+      document.getElementById('detailDrawerBodyLuiz').innerHTML = `<div class="detail-info-grid-luiz">
+        ${detailBox('Data', safeDate(r.data))}
+        ${detailBox('Placa', r.placa)}
+        ${detailBox('Tipo/peça', r.tipo)}
+        ${detailBox('Origem', r.origem)}
+        ${detailBox('Valor', safeBRL(r.valor))}
+        ${detailBox('Status', statusText(r.status || 'concluido'))}
+        ${detailBox('Descrição completa', r.descricao, true)}
+      </div>`;
+    }else{
+      document.getElementById('detailDrawerBodyLuiz').innerHTML = `<div class="detail-info-grid-luiz">
+        ${detailBox('Data', safeDate(r.data))}
+        ${detailBox('Pasta/Mês', safeMonth(r.mes))}
+        ${detailBox('Placa', r.placa)}
+        ${detailBox('Responsável', r.responsavel)}
+        ${detailBox('Serviço completo', r.servico, true)}
+        ${detailBox('Observação', r.obs, true)}
+      </div>`;
+    }
+    const edit = document.getElementById('detailDrawerEditLuiz');
+    edit.onclick = function(){ window.closeRegistroDetalhesLuiz(); if(typeof openForm === 'function') openForm(key, itemId); };
+    bg.classList.add('open');
+  };
+  window.closeRegistroDetalhesLuiz = function(){ document.getElementById('detailDrawerLuiz')?.classList.remove('open'); };
+
+  window.renderProdInfo = function(){
+    const q = norm(document.getElementById('prodSearch')?.value || '');
+    const selected = prodSelected();
+    const rows = arr('producao').filter(function(r){
+      return (!selected || r.mes === selected) && (!q || norm(Object.values(r).join(' ')).includes(q));
+    }).sort(function(a,b){ return String(a.data || '').localeCompare(String(b.data || '')); });
+    const htmlRows = rows.map(function(r){
+      return `<tr>
+        <td data-label="Data">${safeDate(r.data)}</td>
+        <td data-label="Pasta/Mês">${safeMonth(r.mes)}</td>
+        <td data-label="Placa"><span class="plate">${safeEsc(r.placa || '-')}</span></td>
+        <td data-label="Serviço"><div class="long-cell-luiz">${safeEsc(r.servico || '-')}</div><div class="mini-muted-luiz">Abra detalhes para ver o texto completo</div></td>
+        <td data-label="Responsável"><div class="long-cell-luiz">${safeEsc(r.responsavel || '-')}</div></td>
+        <td data-label="Observação"><div class="long-cell-luiz">${safeEsc(r.obs || '-')}</div></td>
+        <td data-label="Ações" class="row-actions compact-actions-luiz"><button class="detail-btn-luiz" onclick="openRegistroDetalhesLuiz('producao',${Number(r.id) || 0})">Detalhes</button><button class="icon-btn" onclick="openForm('producao',${Number(r.id) || 0})">✎</button><button class="icon-btn" onclick="removeItem('producao',${Number(r.id) || 0})">×</button></td>
+      </tr>`;
+    }).join('');
+    const target = document.getElementById('prodInfo');
+    if(target) target.innerHTML = makeTable(selected ? `Produção — ${safeMonth(selected)}` : 'Produção — Todos os meses', ['Data','Pasta/Mês','Placa','Serviço','Responsável','Observação','Ações'], htmlRows);
+  };
+  try{ renderProdInfo = window.renderProdInfo; }catch(e){}
+
+  const oldSelectProd = window.selectProdMonth || (typeof selectProdMonth === 'function' ? selectProdMonth : null);
+  window.selectProdMonth = function(m){
+    setProdSelected(m || '');
+    if(typeof window.render_producao === 'function') window.render_producao();
+    else if(oldSelectProd) oldSelectProd.apply(this, arguments);
+    setTimeout(function(){ document.getElementById('prodInfo')?.scrollIntoView({behavior:'smooth',block:'start'}); }, 40);
+  };
+  try{ selectProdMonth = window.selectProdMonth; }catch(e){}
+})();
+</script>
+
+
+
+<!-- Ajuste Luiz v3: alinhamento da coluna de ações/detalhes -->
+<style id="luiz-alinhamento-acoes-v3-css">
+/* Deixa a coluna de ações com espaço real para Detalhes + editar + excluir */
+#manTable th:nth-child(8),
+#manTable td:nth-child(8){
+  width:198px!important;
+  min-width:198px!important;
+  max-width:198px!important;
+}
+#prodInfo th:nth-child(7),
+#prodInfo td:nth-child(7){
+  width:198px!important;
+  min-width:198px!important;
+  max-width:198px!important;
+}
+#manTable th:nth-child(8),
+#prodInfo th:nth-child(7){
+  text-align:center!important;
+  vertical-align:middle!important;
+  padding-left:10px!important;
+  padding-right:10px!important;
+}
+#manTable td:nth-child(8),
+#prodInfo td:nth-child(7){
+  text-align:center!important;
+  vertical-align:middle!important;
+  overflow:visible!important;
+  padding:10px 10px!important;
+}
+#manTable .table-scroll,
+#prodInfo .table-scroll{
+  scrollbar-gutter:stable!important;
+}
+.row-actions.compact-actions-luiz{
+  width:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  flex-wrap:nowrap!important;
+  white-space:nowrap!important;
+}
+.detail-btn-luiz{
+  flex:0 0 88px!important;
+  width:88px!important;
+  min-width:88px!important;
+  height:34px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+.compact-actions-luiz .icon-btn{
+  flex:0 0 34px!important;
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+@media(max-width:820px){
+  #manTable th:nth-child(8),#manTable td:nth-child(8),
+  #prodInfo th:nth-child(7),#prodInfo td:nth-child(7){
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  .row-actions.compact-actions-luiz{
+    justify-content:flex-start!important;
+    flex-wrap:wrap!important;
+  }
+}
+</style>
+
 </body>
 </html>
