@@ -1,0 +1,75 @@
+/* Deixa a coluna de ações com espaço real para Detalhes + editar + excluir */
+#manTable th:nth-child(8),
+#manTable td:nth-child(8){
+  width:198px!important;
+  min-width:198px!important;
+  max-width:198px!important;
+}
+#prodInfo th:nth-child(7),
+#prodInfo td:nth-child(7){
+  width:198px!important;
+  min-width:198px!important;
+  max-width:198px!important;
+}
+#manTable th:nth-child(8),
+#prodInfo th:nth-child(7){
+  text-align:center!important;
+  vertical-align:middle!important;
+  padding-left:10px!important;
+  padding-right:10px!important;
+}
+#manTable td:nth-child(8),
+#prodInfo td:nth-child(7){
+  text-align:center!important;
+  vertical-align:middle!important;
+  overflow:visible!important;
+  padding:10px 10px!important;
+}
+#manTable .table-scroll,
+#prodInfo .table-scroll{
+  scrollbar-gutter:stable!important;
+}
+.row-actions.compact-actions-luiz{
+  width:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  flex-wrap:nowrap!important;
+  white-space:nowrap!important;
+}
+.detail-btn-luiz{
+  flex:0 0 88px!important;
+  width:88px!important;
+  min-width:88px!important;
+  height:34px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+.compact-actions-luiz .icon-btn{
+  flex:0 0 34px!important;
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+@media(max-width:820px){
+  #manTable th:nth-child(8),#manTable td:nth-child(8),
+  #prodInfo th:nth-child(7),#prodInfo td:nth-child(7){
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  .row-actions.compact-actions-luiz{
+    justify-content:flex-start!important;
+    flex-wrap:wrap!important;
+  }
+}

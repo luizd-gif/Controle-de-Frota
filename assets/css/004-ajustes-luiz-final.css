@@ -1,0 +1,21 @@
+/* Ajustes solicitados: motoristas limpo, filtros e cards de multas sem sobreposição */
+.clean-driver-table table{min-width:980px;}
+.clean-driver-table th:nth-child(1),.clean-driver-table td:nth-child(1){width:34%;}
+.clean-driver-table th:nth-child(2),.clean-driver-table td:nth-child(2){width:22%;}
+.clean-driver-table th:nth-child(3),.clean-driver-table td:nth-child(3){width:18%;}
+.clean-driver-table th:nth-child(4),.clean-driver-table td:nth-child(4){width:13%;}
+.clean-driver-table th:nth-child(5),.clean-driver-table td:nth-child(5){width:13%;}
+.clean-driver-table td:first-child b{font-weight:900;letter-spacing:.01em;}
+.clean-driver-table td{font-size:14px;}
+.multa-card{
+  grid-template-columns:110px minmax(260px,1.35fr) minmax(190px,.9fr) minmax(170px,.75fr) auto!important;
+  align-items:center;
+  gap:18px!important;
+}
+.multa-card b,.multa-card small{white-space:normal!important;overflow:hidden;text-overflow:ellipsis;}
+.multa-card .multa-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35;}
+.multa-card .multa-local{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35;}
+.multa-card .row-actions{justify-content:flex-end;}
+.multas-toolbar select{min-width:170px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;font-weight:700;color:var(--text);}
+.filter-row.with-sort{grid-template-columns:1.35fr 190px 190px;}
+@media(max-width:900px){.multa-card{grid-template-columns:1fr!important}.filter-row.with-sort{grid-template-columns:1fr}.clean-driver-table table{min-width:760px}}

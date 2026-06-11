@@ -1,0 +1,22 @@
+/* Produção do Dia — pastas editáveis e modal mais limpo */
+.prod-folder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:14px}
+.prod-folder-card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left;box-shadow:var(--shadow);position:relative;transition:.15s ease}
+.prod-folder-card:hover,.prod-folder-card.active{border-color:#93c5fd;background:#f8fbff;transform:translateY(-1px)}
+.prod-folder-main{width:100%;border:0;background:transparent;text-align:left;padding:0;color:var(--text)}
+.prod-folder-main .folder-icon{font-size:24px;margin-bottom:8px}
+.prod-folder-main strong{display:block;font-size:15px;line-height:1.2}
+.prod-folder-main small{display:block;color:var(--muted);margin-top:5px;line-height:1.35}
+.prod-folder-tools{display:flex;gap:6px;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid #eef2f7}
+.prod-folder-tools .icon-btn{width:32px;height:32px}
+.prod-folder-tools .danger:hover{background:#fef2f2!important;border-color:#fecaca!important;color:#dc2626!important}
+.prod-folder-create{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 12px}
+.prod-folder-create small{color:var(--muted);font-weight:650}
+#modalBg .modal.producao-modal{width:min(860px,100%)}
+.producao-modal .modal-body{padding:20px}
+.producao-modal .form-grid{gap:14px}
+.producao-modal .field label{color:#475569;letter-spacing:.075em}
+.producao-modal .field input,.producao-modal .field select,.producao-modal .field textarea{min-height:44px;border-radius:13px;background:#fff}
+.producao-modal .field textarea{min-height:96px}
+.producao-help{grid-column:1/-1;border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;border-radius:14px;padding:11px 12px;font-size:12px;font-weight:700;line-height:1.35}
+.producao-help span{display:block;color:#475569;font-weight:650;margin-top:3px}
+@media(max-width:560px){.prod-folder-create{align-items:flex-start;flex-direction:column}.prod-folder-tools{justify-content:flex-start}}

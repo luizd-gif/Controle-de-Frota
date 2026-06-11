@@ -1,0 +1,42 @@
+/* Prioridade da sidebar de multas: cards legíveis, sem cortes */
+.priority-card{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  gap:6px 8px!important;
+  width:100%!important;
+  padding:11px 10px!important;
+  margin:8px 0!important;
+  border-radius:14px!important;
+  border:1px solid #e5e7eb!important;
+  background:#fff!important;
+  box-shadow:0 8px 20px rgba(15,23,42,.045)!important;
+  text-align:left!important;
+  overflow:hidden!important;
+}
+.priority-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary);}
+.priority-card.priority-urgent:before{background:var(--red);}
+.priority-card.priority-warn:before{background:var(--amber);}
+.priority-card.priority-ok:before{background:var(--green);}
+.priority-card:hover{border-color:#93c5fd!important;background:#f8fbff!important;transform:translateY(-1px);}
+.priority-card .priority-plate{
+  display:inline-flex;align-items:center;max-width:100%;width:max-content;
+  background:#111827;color:#fff;border-radius:8px;padding:4px 7px;
+  font-size:11px;font-weight:900;letter-spacing:.05em;
+}
+.priority-card .priority-name{
+  grid-column:1/-1;display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text);font-size:12px;font-weight:900;text-transform:uppercase;padding-left:2px;
+}
+.priority-card .priority-status{
+  justify-self:end;align-self:start;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:900;text-transform:uppercase;white-space:nowrap;
+}
+.priority-card .priority-meta{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  color:var(--muted);font-size:10.5px;font-weight:800;min-width:0;
+}
+.priority-card .priority-meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.priority-card .priority-prazo{font-weight:900;color:var(--text);}
+.priority-card.priority-urgent .priority-prazo{color:var(--red);}
+.priority-card.priority-warn .priority-prazo{color:var(--amber);}
+.priority-card.priority-ok .priority-prazo{color:var(--green);}

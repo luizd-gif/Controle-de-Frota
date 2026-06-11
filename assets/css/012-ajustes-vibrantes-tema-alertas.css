@@ -1,0 +1,27 @@
+/* Cores de multas mais fortes e legíveis */
+.fine-card.multa-warn{border-left:6px solid #f59e0b!important;background:linear-gradient(90deg,#fff7ed 0,#ffffff 22%)!important;}
+.fine-card.multa-red{border-left:6px solid #ef4444!important;background:linear-gradient(90deg,#fef2f2 0,#ffffff 22%)!important;}
+.fine-card.multa-info{border-left:6px solid #2563eb!important;background:linear-gradient(90deg,#eff6ff 0,#ffffff 22%)!important;}
+.fine-card.multa-ok{border-left:6px solid #16a34a!important;background:linear-gradient(90deg,#ecfdf5 0,#ffffff 22%)!important;}
+.tag.green{background:#16a34a!important;color:#fff!important;border:1px solid #15803d!important;}
+.tag.amber{background:#f59e0b!important;color:#111827!important;border:1px solid #d97706!important;}
+.tag.red{background:#ef4444!important;color:#fff!important;border:1px solid #dc2626!important;}
+.tag.blue{background:#2563eb!important;color:#fff!important;border:1px solid #1d4ed8!important;}
+.tag.violet{background:#7c3aed!important;color:#fff!important;border:1px solid #6d28d9!important;}
+.tag.gray{background:#475569!important;color:#fff!important;border:1px solid #334155!important;}
+.tag.risk-critical{background:#7f1d1d!important;color:#fff!important;border:1px solid #450a0a!important;}
+.fine-card{gap:18px!important;align-items:flex-start!important;}
+.fine-card small{line-height:1.35!important;white-space:normal!important;}
+.theme-toggle{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:14px;padding:10px 12px;font-weight:800;margin-top:14px;box-shadow:var(--shadow)}
+.theme-toggle:hover{border-color:#93c5fd;background:var(--primary2)}
+.alert-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;margin:10px 0 8px;}
+.alert-mixed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:14px;}
+.alert-card{min-height:74px;padding:13px 14px;border-radius:16px;border:1px solid var(--line);background:var(--panel);box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.alert-card.red{border-color:#fecaca;background:#fef2f2;color:#7f1d1d}.alert-card.amber{border-color:#fed7aa;background:#fff7ed;color:#7c2d12}.alert-card.green{border-color:#bbf7d0;background:#f0fdf4;color:#14532d}.alert-card.blue{border-color:#bfdbfe;background:#eff6ff;color:#1e3a8a}.alert-card.gray{background:#f8fafc;color:#334155}
+.alert-card b{display:block;margin-bottom:5px}.alert-card small{display:block;line-height:1.35;color:inherit;opacity:.88}
+[data-theme="dark"]{--bg:#0f172a;--panel:#111827;--panel2:#0b1220;--text:#e5e7eb;--muted:#94a3b8;--line:#263244;--primary:#60a5fa;--primary2:#172554;--shadow:0 10px 30px rgba(0,0,0,.35)}
+[data-theme="dark"] body{background:var(--bg);color:var(--text)}
+[data-theme="dark"] .sidebar,[data-theme="dark"] .stat,[data-theme="dark"] .filters,[data-theme="dark"] .table-card,[data-theme="dark"] .folder,[data-theme="dark"] .modal,[data-theme="dark"] .btn,[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important;}
+[data-theme="dark"] th{background:#0b1220!important;color:#cbd5e1!important}[data-theme="dark"] td{border-color:#1f2937!important}[data-theme="dark"] tbody tr:hover{background:#111c31!important}
+[data-theme="dark"] .fine-card{background:#111827!important;border-color:#263244!important}[data-theme="dark"] .fine-card.multa-warn{background:linear-gradient(90deg,#451a03 0,#111827 25%)!important}[data-theme="dark"] .fine-card.multa-red{background:linear-gradient(90deg,#450a0a 0,#111827 25%)!important}[data-theme="dark"] .fine-card.multa-info{background:linear-gradient(90deg,#172554 0,#111827 25%)!important}[data-theme="dark"] .fine-card.multa-ok{background:linear-gradient(90deg,#052e16 0,#111827 25%)!important}
+[data-theme="dark"] .alert-card.red{background:#450a0a;color:#fecaca;border-color:#991b1b}[data-theme="dark"] .alert-card.amber{background:#451a03;color:#fde68a;border-color:#92400e}[data-theme="dark"] .alert-card.green{background:#052e16;color:#bbf7d0;border-color:#166534}[data-theme="dark"] .alert-card.blue{background:#172554;color:#bfdbfe;border-color:#1d4ed8}[data-theme="dark"] .alert-card.gray{background:#111827;color:#cbd5e1;border-color:#334155}

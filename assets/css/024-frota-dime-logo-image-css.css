@@ -1,0 +1,38 @@
+html[data-industrial="ops"] .logo.dime-logo-image,
+.logo.dime-logo-image{
+  width:46px!important;
+  min-width:46px!important;
+  height:46px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+html[data-industrial="ops"] .login-logo.dime-logo-image,
+.login-logo.dime-logo-image{
+  width:72px!important;
+  min-width:72px!important;
+  height:72px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.dime-logo-image img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 6px 16px rgba(16,185,129,.18));
+}
+html[data-industrial="ops"] .brand{gap:12px!important;align-items:center!important;}
+@media(max-width:760px){
+  html[data-industrial="ops"] .logo.dime-logo-image,.logo.dime-logo-image{width:42px!important;min-width:42px!important;height:42px!important;}
+  html[data-industrial="ops"] .login-logo.dime-logo-image,.login-logo.dime-logo-image{width:64px!important;min-width:64px!important;height:64px!important;}
+}
