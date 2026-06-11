@@ -1,0 +1,73 @@
+{
+  "versao": "codigo_para_github_sem_arquivos_grandes",
+  "arquivos_copiados": 101,
+  "arquivos_removidos": [
+    "formularios_defeito_arquivos/Abril_Completo.pdf",
+    "formularios_defeito_arquivos/Janeiro_Completo.pdf",
+    "formularios_defeito_arquivos/Junho_Completo.pdf",
+    "formularios_defeito_arquivos/Maio_Completo.pdf",
+    "backup/LEIA.txt"
+  ],
+  "maiores_arquivos": [
+    {
+      "arquivo": "all.js",
+      "tamanho_mb": 0.67
+    },
+    {
+      "arquivo": "assets/js/01-configuracao.js",
+      "tamanho_mb": 0.3
+    },
+    {
+      "arquivo": "assets/js/48-custom.js",
+      "tamanho_mb": 0.29
+    },
+    {
+      "arquivo": "assets/js/30-defeitos.js",
+      "tamanho_mb": 0.25
+    },
+    {
+      "arquivo": "assets/js/42-compatibilidade.js",
+      "tamanho_mb": 0.07
+    },
+    {
+      "arquivo": "multas-iniciais.js",
+      "tamanho_mb": 0.06
+    },
+    {
+      "arquivo": "assets/js/06-dashboard.js",
+      "tamanho_mb": 0.04
+    },
+    {
+      "arquivo": "assets/js/36-login.js",
+      "tamanho_mb": 0.03
+    },
+    {
+      "arquivo": "assets/js/40-realtime.js",
+      "tamanho_mb": 0.03
+    },
+    {
+      "arquivo": "supabase/sql/seed.sql",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "database/seed.sql",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "assets/js/35-dark-mode.js",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "assets/js/41-correcao-dados.js",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "assets/js/23-oleo.js",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "assets/js/39-cache-local.js",
+      "tamanho_mb": 0.02
+    }
+  ]
+}

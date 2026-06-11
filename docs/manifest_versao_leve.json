@@ -1,0 +1,71 @@
+{
+  "versao": "leve_para_github",
+  "arquivos_copiados": 104,
+  "arquivos_removidos_para_reduzir_tamanho": [
+    "backup/original/projeto_original_recebido.zip",
+    "backup/original/index.html.backup_antes_organizacao.html"
+  ],
+  "maiores_arquivos": [
+    {
+      "arquivo": "formularios_defeito_arquivos/Maio_Completo.pdf",
+      "tamanho_mb": 15.94
+    },
+    {
+      "arquivo": "formularios_defeito_arquivos/Abril_Completo.pdf",
+      "tamanho_mb": 9.49
+    },
+    {
+      "arquivo": "formularios_defeito_arquivos/Junho_Completo.pdf",
+      "tamanho_mb": 2.11
+    },
+    {
+      "arquivo": "all.js",
+      "tamanho_mb": 0.67
+    },
+    {
+      "arquivo": "formularios_defeito_arquivos/Janeiro_Completo.pdf",
+      "tamanho_mb": 0.43
+    },
+    {
+      "arquivo": "assets/js/01-configuracao.js",
+      "tamanho_mb": 0.3
+    },
+    {
+      "arquivo": "assets/js/48-custom.js",
+      "tamanho_mb": 0.29
+    },
+    {
+      "arquivo": "assets/js/30-defeitos.js",
+      "tamanho_mb": 0.25
+    },
+    {
+      "arquivo": "assets/js/42-compatibilidade.js",
+      "tamanho_mb": 0.07
+    },
+    {
+      "arquivo": "multas-iniciais.js",
+      "tamanho_mb": 0.06
+    },
+    {
+      "arquivo": "assets/js/06-dashboard.js",
+      "tamanho_mb": 0.04
+    },
+    {
+      "arquivo": "assets/js/36-login.js",
+      "tamanho_mb": 0.03
+    },
+    {
+      "arquivo": "assets/js/40-realtime.js",
+      "tamanho_mb": 0.03
+    },
+    {
+      "arquivo": "supabase/sql/seed.sql",
+      "tamanho_mb": 0.02
+    },
+    {
+      "arquivo": "database/seed.sql",
+      "tamanho_mb": 0.02
+    }
+  ],
+  "observacao": "Backups pesados e arquivos compactados foram removidos. SQL foi mantido em supabase/sql."
+}

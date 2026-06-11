@@ -1,0 +1,348 @@
+{
+  "descricao": "Arquivos CSS e JS renomeados para nomes profissionais.",
+  "observacao": "A ordem de carregamento foi preservada e as referências no index/arquivos texto foram atualizadas.",
+  "css_renomeados": [
+    {
+      "antes": "assets/css/002-ajustes-luiz-css.css",
+      "depois": "assets/css/01-base.css"
+    },
+    {
+      "antes": "assets/css/003-empresa-ajustes-css.css",
+      "depois": "assets/css/02-layout.css"
+    },
+    {
+      "antes": "assets/css/004-ajustes-luiz-final.css",
+      "depois": "assets/css/03-theme.css"
+    },
+    {
+      "antes": "assets/css/005-multa-overlap-fix-final.css",
+      "depois": "assets/css/04-sidebar.css"
+    },
+    {
+      "antes": "assets/css/006-prioridade-multas-clean-v2.css",
+      "depois": "assets/css/05-topbar.css"
+    },
+    {
+      "antes": "assets/css/007-rca-status-ajuste.css",
+      "depois": "assets/css/06-dashboard.css"
+    },
+    {
+      "antes": "assets/css/008-luiz-final-ajustes-css.css",
+      "depois": "assets/css/07-cards.css"
+    },
+    {
+      "antes": "assets/css/009-ajuste-contadores-foscos-em-construcao.css",
+      "depois": "assets/css/08-tables.css"
+    },
+    {
+      "antes": "assets/css/010-correcao-pastas-producao-modo-escuro-luiz.css",
+      "depois": "assets/css/09-forms.css"
+    },
+    {
+      "antes": "assets/css/011-login-perfis-luiz-css.css",
+      "depois": "assets/css/10-modals.css"
+    },
+    {
+      "antes": "assets/css/012-ajustes-vibrantes-tema-alertas.css",
+      "depois": "assets/css/11-buttons.css"
+    },
+    {
+      "antes": "assets/css/013-ajustes-defeitos-dark-alertas-v2.css",
+      "depois": "assets/css/12-filters.css"
+    },
+    {
+      "antes": "assets/css/014-producao-dia-pastas-ajuste-luiz.css",
+      "depois": "assets/css/13-login.css"
+    },
+    {
+      "antes": "assets/css/015-manutencoes-pastas-editaveis-css.css",
+      "depois": "assets/css/14-dark-mode.css"
+    },
+    {
+      "antes": "assets/css/016-veiculos-separados-ativos-manutencao-css.css",
+      "depois": "assets/css/15-responsive.css"
+    },
+    {
+      "antes": "assets/css/017-veiculos-sem-linha-motorista-final-css.css",
+      "depois": "assets/css/16-multas.css"
+    },
+    {
+      "antes": "assets/css/018-fix-layout-manutencoes-horizontal-luiz.css",
+      "depois": "assets/css/17-pontos.css"
+    },
+    {
+      "antes": "assets/css/019-correcao-modo-escuro-final-luiz.css",
+      "depois": "assets/css/18-motoristas.css"
+    },
+    {
+      "antes": "assets/css/020-fix-outros-modulos-dark-luiz.css",
+      "depois": "assets/css/19-veiculos.css"
+    },
+    {
+      "antes": "assets/css/021-industrial-ops-real-data-theme.css",
+      "depois": "assets/css/20-tacografos.css"
+    },
+    {
+      "antes": "assets/css/022-frota-dime-alertas-descricoes.css",
+      "depois": "assets/css/21-oleo.css"
+    },
+    {
+      "antes": "assets/css/023-frota-dime-alertas-visual-v2.css",
+      "depois": "assets/css/22-manutencoes.css"
+    },
+    {
+      "antes": "assets/css/024-frota-dime-logo-image-css.css",
+      "depois": "assets/css/23-producao.css"
+    },
+    {
+      "antes": "assets/css/025-frota-dime-veiculos-motivo-css.css",
+      "depois": "assets/css/24-brat.css"
+    },
+    {
+      "antes": "assets/css/026-frota-dime-alertas-click-premium-v3-css.css",
+      "depois": "assets/css/25-defeitos.css"
+    },
+    {
+      "antes": "assets/css/027-frota-dime-ajustes-alertas-modulos-css.css",
+      "depois": "assets/css/26-indicadores.css"
+    },
+    {
+      "antes": "assets/css/028-luiz-gravidade-manutencao-prioridade-css.css",
+      "depois": "assets/css/27-importacao.css"
+    },
+    {
+      "antes": "assets/css/029-patch-pontos-brat-luiz-css.css",
+      "depois": "assets/css/28-relatorios.css"
+    },
+    {
+      "antes": "assets/css/030-brat-pdf-import-final-css.css",
+      "depois": "assets/css/29-historico-veiculos.css"
+    },
+    {
+      "antes": "assets/css/031-brat-anexos-viewer-css.css",
+      "depois": "assets/css/30-ajustes-visuais.css"
+    },
+    {
+      "antes": "assets/css/032-brat-pacote-zip-css.css",
+      "depois": "assets/css/31-componentes-avancados.css"
+    },
+    {
+      "antes": "assets/css/033-brat-simples-pontos-final-css.css",
+      "depois": "assets/css/32-timeline.css"
+    },
+    {
+      "antes": "assets/css/034-luiz-pontos-supabase-brat-desc-css.css",
+      "depois": "assets/css/33-kanban.css"
+    },
+    {
+      "antes": "assets/css/035-luiz-sem-rolagem-v2-css.css",
+      "depois": "assets/css/34-print.css"
+    },
+    {
+      "antes": "assets/css/036-luiz-alinhamento-acoes-v3-css.css",
+      "depois": "assets/css/35-mobile.css"
+    },
+    {
+      "antes": "assets/css/037-historico-veiculos-luiz-forcado-css.css",
+      "depois": "assets/css/36-acessibilidade.css"
+    },
+    {
+      "antes": "assets/css/style-001.css",
+      "depois": "assets/css/37-custom.css"
+    }
+  ],
+  "js_renomeados": [
+    {
+      "antes": "assets/js/002-empresa-ajustes-script.js",
+      "depois": "assets/js/01-configuracao.js"
+    },
+    {
+      "antes": "assets/js/003-auto-pontos-multas-script.js",
+      "depois": "assets/js/02-estado-global.js"
+    },
+    {
+      "antes": "assets/js/004-ajustes-finais-vibrante-tema-pesquisas-alertas.js",
+      "depois": "assets/js/03-utilitarios.js"
+    },
+    {
+      "antes": "assets/js/005-formularios-defeito-module.js",
+      "depois": "assets/js/04-navegacao.js"
+    },
+    {
+      "antes": "assets/js/006-ajustes-defeitos-escritos-v2.js",
+      "depois": "assets/js/05-render-base.js"
+    },
+    {
+      "antes": "assets/js/007-defeitos-ocr-e-pontos-vinculados.js",
+      "depois": "assets/js/06-dashboard.js"
+    },
+    {
+      "antes": "assets/js/008-formularios-defeito-em-construcao-final.js",
+      "depois": "assets/js/07-supabase-client.js"
+    },
+    {
+      "antes": "assets/js/009-producao-dia-pastas-ajuste-luiz-js.js",
+      "depois": "assets/js/08-sincronizacao.js"
+    },
+    {
+      "antes": "assets/js/010-manutencoes-pastas-editaveis-js.js",
+      "depois": "assets/js/09-formularios.js"
+    },
+    {
+      "antes": "assets/js/011-fix-sync-multas-final.js",
+      "depois": "assets/js/10-modal.js"
+    },
+    {
+      "antes": "assets/js/012-fix-definitivo-multas-sem-descricao-cache.js",
+      "depois": "assets/js/11-toast.js"
+    },
+    {
+      "antes": "assets/js/013-fix-pastas-sem-sumir-e-acoes.js",
+      "depois": "assets/js/12-tabelas.js"
+    },
+    {
+      "antes": "assets/js/014-veiculos-separados-ativos-manutencao-js.js",
+      "depois": "assets/js/13-filtros.js"
+    },
+    {
+      "antes": "assets/js/015-sync-supabase-seguro-final-luiz.js",
+      "depois": "assets/js/14-exportacao.js"
+    },
+    {
+      "antes": "assets/js/016-veiculos-sem-linha-motorista-final-js.js",
+      "depois": "assets/js/15-multas.js"
+    },
+    {
+      "antes": "assets/js/017-sync-estavel-tac-oleo-man-producao.js",
+      "depois": "assets/js/16-multas-status.js"
+    },
+    {
+      "antes": "assets/js/018-fix-manutencoes-servico-obrigatorio.js",
+      "depois": "assets/js/17-pontos.js"
+    },
+    {
+      "antes": "assets/js/019-fix-definitivo-tacografo-aparece-e-sincroniza.js",
+      "depois": "assets/js/18-pontos-vinculos.js"
+    },
+    {
+      "antes": "assets/js/020-fix-tacografo-pastas-validade-vencimento.js",
+      "depois": "assets/js/19-motoristas.js"
+    },
+    {
+      "antes": "assets/js/021-fix-tacografo-pasta-nao-sumir-definitivo.js",
+      "depois": "assets/js/20-veiculos.js"
+    },
+    {
+      "antes": "assets/js/022-patch-luiz-nao-sumir-listas-v2.js",
+      "depois": "assets/js/21-historico-veiculos.js"
+    },
+    {
+      "antes": "assets/js/023-fix-manutencoes-descricao-completa.js",
+      "depois": "assets/js/22-tacografos.js"
+    },
+    {
+      "antes": "assets/js/024-fix-limpo-manutencoes-descricao-supabase-vencimento.js",
+      "depois": "assets/js/23-oleo.js"
+    },
+    {
+      "antes": "assets/js/025-fix-final-status-manutencoes-luiz.js",
+      "depois": "assets/js/24-manutencoes.js"
+    },
+    {
+      "antes": "assets/js/026-login-perfis-luiz-js.js",
+      "depois": "assets/js/25-manutencoes-descricoes.js"
+    },
+    {
+      "antes": "assets/js/027-fix-placas-manutencoes-mar-abr-mai.js",
+      "depois": "assets/js/26-manutencoes-valores.js"
+    },
+    {
+      "antes": "assets/js/028-industrial-ops-real-data-boot.js",
+      "depois": "assets/js/27-producao.js"
+    },
+    {
+      "antes": "assets/js/029-frota-dime-alertas-click-descricao-js.js",
+      "depois": "assets/js/28-brat.js"
+    },
+    {
+      "antes": "assets/js/030-frota-dime-alertas-visual-v2-js.js",
+      "depois": "assets/js/29-brat-anexos.js"
+    },
+    {
+      "antes": "assets/js/031-frota-dime-logo-image-js.js",
+      "depois": "assets/js/30-defeitos.js"
+    },
+    {
+      "antes": "assets/js/032-frota-dime-veiculos-motivo-js.js",
+      "depois": "assets/js/31-defeitos-anexos.js"
+    },
+    {
+      "antes": "assets/js/033-frota-dime-alertas-click-premium-v3-js.js",
+      "depois": "assets/js/32-indicadores.js"
+    },
+    {
+      "antes": "assets/js/034-frota-dime-ajustes-alertas-modulos-js.js",
+      "depois": "assets/js/33-importacao.js"
+    },
+    {
+      "antes": "assets/js/035-frota-dime-showpage-cleanup-v5.js",
+      "depois": "assets/js/34-relatorios.js"
+    },
+    {
+      "antes": "assets/js/036-luiz-gravidade-manutencao-prioridade-js.js",
+      "depois": "assets/js/35-dark-mode.js"
+    },
+    {
+      "antes": "assets/js/037-patch-pontos-brat-luiz-js.js",
+      "depois": "assets/js/36-login.js"
+    },
+    {
+      "antes": "assets/js/038-brat-menu-pdf-import-final-js.js",
+      "depois": "assets/js/37-permissoes.js"
+    },
+    {
+      "antes": "assets/js/039-brat-anexos-viewer-js.js",
+      "depois": "assets/js/38-validacoes.js"
+    },
+    {
+      "antes": "assets/js/040-brat-pacote-zip-js.js",
+      "depois": "assets/js/39-cache-local.js"
+    },
+    {
+      "antes": "assets/js/041-brat-simples-pontos-final-js.js",
+      "depois": "assets/js/40-realtime.js"
+    },
+    {
+      "antes": "assets/js/042-luiz-pontos-supabase-brat-desc-js.js",
+      "depois": "assets/js/41-correcao-dados.js"
+    },
+    {
+      "antes": "assets/js/043-luiz-descricoes-manutencoes-antigas-final.js",
+      "depois": "assets/js/42-compatibilidade.js"
+    },
+    {
+      "antes": "assets/js/044-fix-contagem-manutencoes-fonte-unica-supabase-v4.js",
+      "depois": "assets/js/43-integracoes.js"
+    },
+    {
+      "antes": "assets/js/045-fix-v5-valores-decimais-manutencoes-luiz.js",
+      "depois": "assets/js/44-layout-responsivo.js"
+    },
+    {
+      "antes": "assets/js/046-luiz-sem-rolagem-v2-js.js",
+      "depois": "assets/js/45-acoes-rapidas.js"
+    },
+    {
+      "antes": "assets/js/047-luiz-manutencoes-filtro-estavel-v1.js",
+      "depois": "assets/js/46-inicializacao.js"
+    },
+    {
+      "antes": "assets/js/048-historico-veiculos-luiz-forcado-js.js",
+      "depois": "assets/js/47-custom.js"
+    },
+    {
+      "antes": "assets/js/script-001.js",
+      "depois": "assets/js/48-custom.js"
+    }
+  ]
+}

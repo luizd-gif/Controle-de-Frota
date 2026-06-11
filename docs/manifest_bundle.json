@@ -1,0 +1,9 @@
+{
+  "versao": "bundle_poucos_arquivos",
+  "css_agrupados": 37,
+  "js_agrupados": 48,
+  "arquivo_css_final": "assets/css/style.css",
+  "arquivo_js_final": "assets/js/app.js",
+  "total_arquivos": 21,
+  "observacao": "Criado para permitir upload manual no GitHub com menos de 100 arquivos."
+}
