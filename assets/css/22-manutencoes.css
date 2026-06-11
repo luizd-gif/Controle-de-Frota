@@ -1,0 +1,204 @@
+html[data-industrial="ops"] .alerts-shell{
+  display:grid;
+  gap:14px;
+}
+html[data-industrial="ops"] .alerts-overview{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+  margin-top:2px;
+}
+html[data-industrial="ops"] .alerts-overview-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid rgba(255,176,0,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+  box-shadow:0 14px 34px rgba(0,0,0,.24);
+  padding:14px 15px;
+}
+html[data-industrial="ops"] .alerts-overview-card:before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:linear-gradient(180deg,#ffb000,#ff7a00);
+  opacity:.95;
+}
+html[data-industrial="ops"] .alerts-overview-card.red:before{background:linear-gradient(180deg,#ef4444,#991b1b)}
+html[data-industrial="ops"] .alerts-overview-card.amber:before{background:linear-gradient(180deg,#f59e0b,#b45309)}
+html[data-industrial="ops"] .alerts-overview-card.blue:before{background:linear-gradient(180deg,#60a5fa,#1d4ed8)}
+html[data-industrial="ops"] .alerts-overview-card.gray:before{background:linear-gradient(180deg,#94a3b8,#475569)}
+html[data-industrial="ops"] .alerts-overview-card .kicker{
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.16em;
+  color:#d1d5db;
+  margin-bottom:7px;
+  font-weight:900;
+}
+html[data-industrial="ops"] .alerts-overview-card strong{
+  display:block;
+  font-size:28px;
+  line-height:1;
+  color:#fff8e7;
+  margin-bottom:4px;
+}
+html[data-industrial="ops"] .alerts-overview-card span{
+  display:block;
+  color:#c8bda8;
+  font-size:12px;
+  line-height:1.35;
+}
+html[data-industrial="ops"] .alert-panel-premium{
+  overflow:hidden;
+  border-radius:22px;
+  border:1px solid rgba(255,176,0,.18);
+  background:linear-gradient(180deg,rgba(23,19,12,.97),rgba(13,11,8,.97));
+  box-shadow:0 18px 44px rgba(0,0,0,.32);
+}
+html[data-industrial="ops"] .alert-panel-premium .table-head{
+  padding:18px 18px 8px 18px!important;
+  border-bottom:1px solid rgba(255,176,0,.12);
+  margin-bottom:0!important;
+}
+html[data-industrial="ops"] .alert-panel-premium .table-head h3{
+  font-size:19px!important;
+  letter-spacing:.02em!important;
+}
+html[data-industrial="ops"] .alert-panel-premium .table-head small{
+  color:#d0c5b4!important;
+}
+html[data-industrial="ops"] .alert-mixed-grid{
+  grid-template-columns:repeat(auto-fit,minmax(285px,1fr))!important;
+  gap:14px!important;
+  padding:18px!important;
+}
+html[data-industrial="ops"] .alert-card.alert-clickable,
+html[data-industrial="ops"] button.alert-card{
+  min-height:164px!important;
+  border-radius:20px!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  background:
+    radial-gradient(circle at top right, rgba(255,176,0,.12), transparent 35%),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015))!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.30)!important;
+  padding:16px 16px 16px 16px!important;
+}
+html[data-industrial="ops"] .alert-card.alert-clickable:before,
+html[data-industrial="ops"] button.alert-card:before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:4px;
+  background:linear-gradient(90deg,#ffb000,#ff7a00);
+}
+html[data-industrial="ops"] .alert-card.red:before{background:linear-gradient(90deg,#ef4444,#7f1d1d)!important}
+html[data-industrial="ops"] .alert-card.amber:before{background:linear-gradient(90deg,#f59e0b,#b45309)!important}
+html[data-industrial="ops"] .alert-card.blue:before{background:linear-gradient(90deg,#60a5fa,#1d4ed8)!important}
+html[data-industrial="ops"] .alert-card.gray:before{background:linear-gradient(90deg,#94a3b8,#475569)!important}
+html[data-industrial="ops"] .alert-card.alert-clickable:hover,
+html[data-industrial="ops"] button.alert-card:hover{
+  transform:translateY(-3px)!important;
+  border-color:rgba(255,176,0,.42)!important;
+  background:
+    radial-gradient(circle at top right, rgba(255,176,0,.18), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02))!important;
+}
+html[data-industrial="ops"] .alert-card.alert-clickable:after,
+html[data-industrial="ops"] button.alert-card:after{
+  content:none!important;
+}
+html[data-industrial="ops"] .alert-card .alert-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+html[data-industrial="ops"] .alert-card .alert-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+html[data-industrial="ops"] .alert-card .alert-icon{
+  width:40px;
+  height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  font-size:20px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  flex:0 0 auto;
+}
+html[data-industrial="ops"] .alert-card .alert-title{
+  margin:0 0 8px 0!important;
+  font-size:16px!important;
+  font-weight:950!important;
+  color:#fff8ec!important;
+}
+html[data-industrial="ops"] .alert-card .alert-desc{
+  margin:0!important;
+  font-size:12.5px!important;
+  line-height:1.55!important;
+  color:#d9cfbf!important;
+}
+html[data-industrial="ops"] .alert-card .alert-footer{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px dashed rgba(255,255,255,.10);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+html[data-industrial="ops"] .alert-card .alert-footer strong{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:#ffcf59;
+}
+html[data-industrial="ops"] .alert-card .alert-footer span{
+  font-size:11px;
+  color:#c6b79f;
+}
+html[data-industrial="ops"] .alert-card .tag,
+html[data-industrial="ops"] .alert-card .level-badge{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  min-height:26px;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+html[data-industrial="ops"] .alert-card .level-badge{
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  color:#fff2c6;
+}
+html[data-industrial="ops"] .alert-card.red .alert-icon{background:rgba(239,68,68,.14); color:#fecaca; border-color:rgba(239,68,68,.25)}
+html[data-industrial="ops"] .alert-card.amber .alert-icon{background:rgba(245,158,11,.15); color:#fde68a; border-color:rgba(245,158,11,.28)}
+html[data-industrial="ops"] .alert-card.blue .alert-icon{background:rgba(59,130,246,.16); color:#dbeafe; border-color:rgba(59,130,246,.26)}
+html[data-industrial="ops"] .alert-card.gray .alert-icon{background:rgba(148,163,184,.14); color:#e2e8f0; border-color:rgba(148,163,184,.24)}
+html[data-industrial="ops"] .alert-empty-state{
+  margin:18px;
+  border-radius:18px;
+  border:1px dashed rgba(255,176,0,.22);
+  padding:22px 18px;
+  text-align:center;
+  color:#d6c7aa;
+  background:rgba(255,255,255,.02);
+}
+@media (max-width:760px){
+  html[data-industrial="ops"] .alerts-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html[data-industrial="ops"] .alert-card.alert-clickable,
+  html[data-industrial="ops"] button.alert-card{min-height:auto!important}
+}

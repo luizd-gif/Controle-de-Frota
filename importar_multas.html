@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Importar multas para o Supabase</title>
+<style>
+body{margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a}.box{max-width:820px;margin:32px auto;background:white;border:1px solid #e2e8f0;border-radius:18px;padding:28px;box-shadow:0 15px 40px rgba(15,23,42,.08)}button{background:#2563eb;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}pre{background:#0f172a;color:#fff;border-radius:10px;padding:14px;white-space:pre-wrap;overflow:auto}code{background:#eef2ff;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Importar multas do index1 para o Supabase</h1>
+  <p>Use esta página para enviar para o Supabase as multas do <code>index1.html</code>, preservando município, datas e campos iguais ao arquivo mais atualizado.</p>
+  <p>O botão abaixo usa <b>upsert</b>: se uma multa com o mesmo ID já existir, ela será atualizada em vez de duplicada.</p>
+  <button onclick="importar()">Importar/atualizar 117 multas</button>
+  <pre id="log">Aguardando...</pre>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="multas-iniciais.js"></script>
+<script>
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const log = document.getElementById('log');
+const escrever = txt => log.textContent += '\n' + txt;
+function inferStatus(r){
+  const ass=String(r.assinado||'').toUpperCase().trim();
+  const pg=String(r.pago||'').toUpperCase().trim();
+  const obs=String(r.obs||'').toUpperCase();
+  const t=[r.assinado,r.obs,r.pago,r.envioRCA,r.dp].join(' ').toUpperCase();
+  if(t.includes('RECORR')) return 'recorrida';
+  if(t.includes('DEMIT')) return 'demitido';
+  if(pg==='OK') return 'pago';
+  if(obs.includes('AGUARD') && obs.includes('ACEITE')) return 'aguardando_aceite';
+  if(ass==='OK') return 'aceito';
+  if(t.includes('S/') || t.includes('SEM COBRAN') || t.includes('S/N')) return 'sem_necessidade';
+  return 'aguardando_aceite';
+}
+function toDb(r){
+  return {
+    id: Number(r.id),
+    linha: String(r.linha ?? ''),
+    carro: r.carro || '',
+    placa: r.carro || '',
+    data: r.data || '',
+    hora: r.hora || '',
+    local: r.local || '',
+    municipio: r.municipio || '',
+    infracao: r.infracao || '',
+    auto: r.auto || '',
+    motorista: r.motorista || 'S/N',
+    valor: Number(r.valor || 0),
+    assinado: r.assinado || '',
+    pago: r.pago || '',
+    envio_rca: r.envioRCA || '',
+    prazo_aceite: r.prazoAceite || r.envioRCA || '',
+    dp: r.dp || '',
+    status: r.status || inferStatus(r),
+    obs: r.obs || '',
+    data_suspeita: !!r.dataSuspeita
+  };
+}
+async function importar(){
+  log.textContent='Conectando ao Supabase...';
+  const dados=(window.MULTAS_INICIAIS||[]).map(toDb);
+  escrever('Total para importar/atualizar: '+dados.length);
+  for(let i=0;i<dados.length;i+=50){
+    const lote=dados.slice(i,i+50);
+    const {error}=await supabaseClient.from('multas').upsert(lote,{onConflict:'id'});
+    if(error){ escrever('ERRO no lote '+(i/50+1)+': '+error.message); console.error(error); return; }
+    escrever('Lote '+(i/50+1)+' OK ('+lote.length+' multas)');
+  }
+  escrever('Importação concluída. Abra o index.html e confira.');
+}
+</script>
+</body>
+</html>
