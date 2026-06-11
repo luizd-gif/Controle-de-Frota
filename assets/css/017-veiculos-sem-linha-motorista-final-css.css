@@ -1,0 +1,7 @@
+#veiculos .filter-row.two{grid-template-columns:1fr 220px;}
+#veiculos table{min-width:760px;}
+#veiculos th:nth-child(1),#veiculos td:nth-child(1){width:180px;}
+#veiculos th:nth-child(2),#veiculos td:nth-child(2){width:auto;}
+#veiculos th:nth-child(3),#veiculos td:nth-child(3){width:120px;}
+#veiculos th:nth-child(4),#veiculos td:nth-child(4){width:170px;}
+#veiculos th:nth-child(5),#veiculos td:nth-child(5){width:110px;}

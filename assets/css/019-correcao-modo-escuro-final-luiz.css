@@ -1,0 +1,122 @@
+/* Correção final Luiz — elimina cards, botões, campos e avisos claros no modo escuro */
+html[data-theme="dark"]{
+  --bg:#0b1120!important;
+  --panel:#111827!important;
+  --panel2:#162033!important;
+  --text:#f3f4f6!important;
+  --muted:#aab6c7!important;
+  --line:#2b374b!important;
+  --primary:#60a5fa!important;
+  --primary2:#172554!important;
+  --shadow:0 12px 34px rgba(0,0,0,.38)!important;
+}
+html[data-theme="dark"] body{background:linear-gradient(180deg,#0b1120 0%,#0f172a 100%)!important;color:var(--text)!important;}
+html[data-theme="dark"] .app,
+html[data-theme="dark"] .content{background:transparent!important;color:var(--text)!important;}
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .stat,
+html[data-theme="dark"] .filters,
+html[data-theme="dark"] .table-card,
+html[data-theme="dark"] .folder,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .modal-body,
+html[data-theme="dark"] .global-search-card,
+html[data-theme="dark"] .global-result,
+html[data-theme="dark"] .vehicle-history .vh-card,
+html[data-theme="dark"] .driver-card,
+html[data-theme="dark"] .driver-detail,
+html[data-theme="dark"] .priority-card,
+html[data-theme="dark"] .alert-card,
+html[data-theme="dark"] .prod-folder-card,
+html[data-theme="dark"] .defect-written-card,
+html[data-theme="dark"] .defect-file-card,
+html[data-theme="dark"] .user-panel{
+  background:var(--panel)!important;
+  color:var(--text)!important;
+  border-color:var(--line)!important;
+  box-shadow:var(--shadow)!important;
+}
+html[data-theme="dark"] .table-head,
+html[data-theme="dark"] .modal-head,
+html[data-theme="dark"] .modal-foot{background:#0f172a!important;border-color:var(--line)!important;color:var(--text)!important;}
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .icon-btn,
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .multas-toolbar select,
+html[data-theme="dark"] .producao-modal .field input,
+html[data-theme="dark"] .producao-modal .field select,
+html[data-theme="dark"] .producao-modal .field textarea{
+  background:#0f172a!important;
+  color:var(--text)!important;
+  border-color:#334155!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .btn:hover,
+html[data-theme="dark"] .icon-btn:hover{background:#172554!important;border-color:#3b82f6!important;color:#bfdbfe!important;}
+html[data-theme="dark"] .btn.primary{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;}
+html[data-theme="dark"] .btn.danger,
+html[data-theme="dark"] .icon-btn.danger{background:#1f1113!important;color:#fecaca!important;border-color:#7f1d1d!important;}
+html[data-theme="dark"] .btn.danger:hover,
+html[data-theme="dark"] .icon-btn.danger:hover,
+html[data-theme="dark"] .prod-folder-tools .icon-btn.danger:hover{background:#450a0a!important;color:#fecaca!important;border-color:#ef4444!important;}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder{color:#7d8da3!important;}
+html[data-theme="dark"] th{background:#0b1220!important;color:#cbd5e1!important;border-color:#253247!important;}
+html[data-theme="dark"] td{color:#e5e7eb!important;border-color:#223047!important;}
+html[data-theme="dark"] tbody tr:hover{background:#162033!important;}
+html[data-theme="dark"] .nav button{color:#cbd5e1!important;}
+html[data-theme="dark"] .nav button:hover,
+html[data-theme="dark"] .nav button.active,
+html[data-theme="dark"] .shortcut-btn:hover,
+html[data-theme="dark"] .shortcut-btn.shortcut-active{background:#172554!important;color:#bfdbfe!important;border-color:#3b82f6!important;}
+html[data-theme="dark"] .nav .pill,
+html[data-theme="dark"] .nav .shortcut-pill,
+html[data-theme="dark"] .role-badge,
+html[data-theme="dark"] .file-chip,
+html[data-theme="dark"] .rca-date{background:#172554!important;color:#bfdbfe!important;border-color:#3b82f6!important;}
+html[data-theme="dark"] .plate,
+html[data-theme="dark"] .priority-card .priority-plate{background:#020617!important;color:#fff!important;border:1px solid #334155!important;}
+html[data-theme="dark"] .empty{background:#0f172a!important;color:var(--muted)!important;border-color:#334155!important;}
+html[data-theme="dark"] .folder:hover,
+html[data-theme="dark"] .folder.active,
+html[data-theme="dark"] .prod-folder-card:hover,
+html[data-theme="dark"] .prod-folder-card.active,
+html[data-theme="dark"] .priority-card:hover,
+html[data-theme="dark"] .global-result:hover{background:#162033!important;border-color:#3b82f6!important;}
+html[data-theme="dark"] .prod-folder-main,
+html[data-theme="dark"] .folder-main{background:transparent!important;color:var(--text)!important;}
+html[data-theme="dark"] .prod-folder-tools,
+html[data-theme="dark"] .folder-actions,
+html[data-theme="dark"] .folder.editable-folder .folder-card-actions{border-color:var(--line)!important;}
+html[data-theme="dark"] .producao-help,
+html[data-theme="dark"] .man-help,
+html[data-theme="dark"] .construction-note,
+html[data-theme="dark"] .readonly-banner{background:#111c31!important;color:#dbeafe!important;border-color:#3b82f6!important;}
+html[data-theme="dark"] .producao-help span,
+html[data-theme="dark"] .man-help span,
+html[data-theme="dark"] .construction-note small,
+html[data-theme="dark"] small,
+html[data-theme="dark"] .desc-muted,
+html[data-theme="dark"] .status-select-note,
+html[data-theme="dark"] .vehicle-status-note,
+html[data-theme="dark"] .driver-card .dept,
+html[data-theme="dark"] .global-result small,
+html[data-theme="dark"] .alert-card small{color:var(--muted)!important;}
+html[data-theme="dark"] .field label,
+html[data-theme="dark"] .producao-modal .field label,
+html[data-theme="dark"] .driver-detail span{color:#cbd5e1!important;}
+html[data-theme="dark"] .fine-card,
+html[data-theme="dark"] .multa-card,
+html[data-theme="dark"] .multa-card-final{background:#111827!important;color:var(--text)!important;border-color:var(--line)!important;}
+html[data-theme="dark"] .tag.gray{background:#1e293b!important;color:#cbd5e1!important;border:1px solid #334155!important;}
+html[data-theme="dark"] .tag.blue{background:#1e3a8a!important;color:#dbeafe!important;border:1px solid #3b82f6!important;}
+html[data-theme="dark"] .tag.green{background:#064e3b!important;color:#bbf7d0!important;border:1px solid #047857!important;}
+html[data-theme="dark"] .tag.amber{background:#78350f!important;color:#fde68a!important;border:1px solid #d97706!important;}
+html[data-theme="dark"] .tag.red{background:#7f1d1d!important;color:#fecaca!important;border:1px solid #ef4444!important;}
+html[data-theme="dark"] .tag.violet,
+html[data-theme="dark"] .tag.rca{background:#312e81!important;color:#ddd6fe!important;border:1px solid #6366f1!important;}
+html[data-theme="dark"] .progress{background:#334155!important;}
+html[data-theme="dark"] .modal-bg{background:rgba(2,6,23,.72)!important;}
+html[data-theme="dark"] hr{border-color:var(--line)!important;}
